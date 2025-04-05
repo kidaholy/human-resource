@@ -426,6 +426,73 @@ const getLeaveStats = async (req, res) => {
   }
 }
 
+// Get department employees' leave history
+const getDepartmentEmployeesLeaveHistory = async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    // Find the employee record for the current user (department head)
+    const departmentHead = await Employee.findOne({ userId })
+
+    if (!departmentHead) {
+      return res.status(404).json({ success: false, error: "Department head not found" })
+    }
+
+    // Find the department where this employee is the head
+    const department = await Department.findOne({ departmentHead: departmentHead._id })
+
+    if (!department) {
+      return res.status(404).json({ success: false, error: "You are not assigned as a department head" })
+    }
+
+    // Find all employees in this department
+    const departmentEmployees = await Employee.find({
+      department: department._id,
+    }).select("_id")
+
+    const employeeIds = departmentEmployees.map((emp) => emp._id)
+
+    // Get leave history for all employees in the department
+    const leaveHistory = await Leave.find({
+      employeeId: { $in: employeeIds }
+    })
+    .populate({
+      path: "employeeId",
+      populate: [
+        {
+          path: "userId",
+          select: "name email profileImage",
+        },
+        {
+          path: "department",
+          select: "dep_name",
+        },
+      ],
+    })
+    .sort({ createdAt: -1 })
+
+    // Calculate total days for each leave request
+    const leaveHistoryWithDays = leaveHistory.map(leave => {
+      const startDate = new Date(leave.startDate)
+      const endDate = new Date(leave.endDate)
+      const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
+      return {
+        ...leave.toObject(),
+        totalDays
+      }
+    })
+
+    return res.status(200).json({ 
+      success: true, 
+      leaveHistory: leaveHistoryWithDays,
+      departmentName: department.dep_name
+    })
+  } catch (error) {
+    console.error("Error fetching department employees leave history:", error)
+    return res.status(500).json({ success: false, error: "Server error in fetching department employees leave history" })
+  }
+}
+
 export {
   requestLeave,
   getLeaveHistory,
@@ -436,5 +503,6 @@ export {
   updateAdminLeaveStatus,
   getAllLeaveRequests,
   getLeaveStats,
+  getDepartmentEmployeesLeaveHistory
 }
 

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react"
 import SummaryCard from "./SummaryCard"
-import { FaCalendarCheck, FaCalendarTimes, FaInbox, FaUsers, FaChartBar } from "react-icons/fa"
+import { FaCalendarCheck, FaCalendarTimes, FaInbox, FaUsers, FaChartBar, FaHistory } from "react-icons/fa"
 import axios from "axios"
 import { useAuth } from "../../context/authContext"
 import ChartComponent from "../charts/ChartComponent"
+import DepartmentEmployeesLeaveHistory from "../leave/DepartmentEmployeesLeaveHistory"
 
 const DepartmentHeadSummary = () => {
   const [summaryData, setSummaryData] = useState({
@@ -21,6 +22,46 @@ const DepartmentHeadSummary = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { user } = useAuth()
+
+  const handleLeaveAction = async (leaveId, status) => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/leave/update-status/${leaveId}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      )
+
+      // Update the local state to reflect the change
+      setSummaryData((prev) => ({
+        ...prev,
+        recentLeaveRequests: prev.recentLeaveRequests.filter((request) => request._id !== leaveId),
+        pendingLeaveRequests: prev.pendingLeaveRequests - 1,
+        ...(status === "approved"
+          ? { approvedLeaveRequests: prev.approvedLeaveRequests + 1 }
+          : { rejectedLeaveRequests: prev.rejectedLeaveRequests + 1 }),
+      }))
+
+      // Update the leave status chart data
+      setLeaveStatusData((prev) =>
+        prev.map((item) => {
+          if (item.name.toLowerCase() === "pending") {
+            return { ...item, value: Math.max(0, item.value - 1) }
+          }
+          if (item.name.toLowerCase() === status) {
+            return { ...item, value: item.value + 1 }
+          }
+          return item
+        }),
+      )
+    } catch (error) {
+      console.error("Error updating leave status:", error)
+      alert("Failed to update leave status. Please try again.")
+    }
+  }
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -204,53 +245,69 @@ const DepartmentHeadSummary = () => {
                       Duration
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dates
+                      Status
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                      Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {pendingLeaveRequests.map((request) => (
-                    <tr key={request._id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <tr key={request._id}>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8">
-                            <img
-                              className="h-8 w-8 rounded-full object-cover border-2 border-primary-500"
-                              src={`http://localhost:5000/${request.employeeId?.userId?.profileImage}`}
-                              alt=""
-                              onError={(e) => {
-                                e.target.onerror = null
-                                e.target.src = "/placeholder.svg?height=40&width=40"
-                              }}
-                            />
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {request.employeeId?.userId?.profileImage ? (
+                              <img
+                                className="h-10 w-10 rounded-full object-cover"
+                                src={`http://localhost:5000/${request.employeeId.userId.profileImage}`}
+                                alt=""
+                                onError={(e) => {
+                                  e.target.onerror = null
+                                  e.target.src = "/placeholder.svg"
+                                }}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-xl text-gray-500">
+                                  {request.employeeId?.userId?.name?.[0] || "?"}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">{request.employeeId?.userId?.name}</div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {request.employeeId?.userId?.name}
+                            </div>
+                            <div className="text-sm text-gray-500">{request.employeeId?.userId?.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 capitalize">{request.leaveType.replace("_", " ")}</div>
+                        <span className="text-sm text-gray-900 capitalize">{request.leaveType.replace(/_/g, " ")}</span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{request.totalDays} days</div>
+                        <span className="text-sm text-gray-900">{request.totalDays} days</span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(request.startDate).toLocaleDateString()} -{" "}
-                          {new Date(request.endDate).toLocaleDateString()}
-                        </div>
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Pending
+                        </span>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                        <a
-                          href="/department-head-dashboard/leave-requests"
-                          className="text-primary-600 hover:text-primary-900 transition-colors duration-150"
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button
+                          onClick={() => handleLeaveAction(request._id, "approved")}
+                          className="text-green-600 hover:text-green-900"
                         >
-                          Review
-                        </a>
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleLeaveAction(request._id, "rejected")}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Reject
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -259,6 +316,14 @@ const DepartmentHeadSummary = () => {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="mt-8">
+        <h4 className="text-lg md:text-xl font-bold mb-4 flex items-center">
+          <FaHistory className="mr-2 text-primary-600" />
+          Department Leave History
+        </h4>
+        <DepartmentEmployeesLeaveHistory />
       </div>
     </div>
   )

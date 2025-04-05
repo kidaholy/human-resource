@@ -11,6 +11,7 @@ import {
   getAllLeaveRequests,
   getLeaveStats,
   getDepartmentLeaveStats,
+  getDepartmentEmployeesLeaveHistory
 } from "../controllers/leaveController.js"
 
 const router = express.Router()
@@ -23,6 +24,7 @@ router.get("/history", authMiddleware, getLeaveHistory)
 router.get("/department-requests", authMiddleware, roleMiddleware(["department_head"]), getDepartmentLeaveRequests)
 router.put("/department-head/:id", authMiddleware, roleMiddleware(["department_head"]), updateDepartmentHeadLeaveStatus)
 router.get("/department-stats", authMiddleware, roleMiddleware(["department_head"]), getDepartmentLeaveStats)
+router.get("/department-employees-history", authMiddleware, roleMiddleware(["department_head"]), getDepartmentEmployeesLeaveHistory)
 
 // Admin routes
 router.get("/admin-requests", authMiddleware, roleMiddleware(["admin"]), getAdminLeaveRequests)
