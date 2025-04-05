@@ -24,44 +24,50 @@ const AdminSummary = () => {
     leaveRejected: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchSummaryData = async () => {
       try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+          throw new Error("No authentication token found")
+        }
+
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        }
+
         // Fetch employees count
         const employeesResponse = await axios
-          .get("http://localhost:5000/api/employees/count", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
+          .get("http://localhost:5000/api/employees/count", { headers })
           .catch(() => ({ data: { count: 0 } }))
 
-        // Fetch departments count
-        const departmentsResponse = await axios
-          .get("http://localhost:5000/api/departments/count", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
-          .catch(() => ({ data: { count: 0 } }))
+        // Fetch departments count - try both endpoints
+        let totalDepartments = 0
+        try {
+          const departmentsCountResponse = await axios.get("http://localhost:5000/api/departments/count", { headers })
+          if (departmentsCountResponse.data.success) {
+            totalDepartments = departmentsCountResponse.data.count
+          } else {
+            throw new Error("Count endpoint returned unsuccessful response")
+          }
+        } catch (countError) {
+          console.log("Trying fallback method for department count...")
+          const departmentsResponse = await axios.get("http://localhost:5000/api/departments", { headers })
+          if (departmentsResponse.data.success) {
+            totalDepartments = departmentsResponse.data.departments?.length || 0
+          }
+        }
 
         // Fetch monthly payroll
         const payrollResponse = await axios
-          .get("http://localhost:5000/api/salary/monthly-total", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
+          .get("http://localhost:5000/api/salary/monthly-total", { headers })
           .catch(() => ({ data: { total: 0 } }))
 
         // Fetch leave statistics
         const leaveResponse = await axios
-          .get("http://localhost:5000/api/leave/stats", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
+          .get("http://localhost:5000/api/leave/stats", { headers })
           .catch(() => ({
             data: {
               total: 0,
@@ -74,7 +80,7 @@ const AdminSummary = () => {
         // Set the summary data
         setSummaryData({
           totalEmployees: employeesResponse.data.count || 0,
-          totalDepartments: departmentsResponse.data.count || 0,
+          totalDepartments,
           monthlyPayroll: payrollResponse.data.total || 0,
           leaveApplied: leaveResponse.data.total || 0,
           leaveApproved: leaveResponse.data.approved || 0,
@@ -83,39 +89,7 @@ const AdminSummary = () => {
         })
       } catch (error) {
         console.error("Error fetching summary data:", error)
-        // If API endpoints don't exist yet, fetch actual data from existing endpoints
-        try {
-          // Fallback: Get actual employee count from the employees list
-          const employeesResponse = await axios.get("http://localhost:5000/api/employees", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
-
-          // Fallback: Get actual department count from the departments list
-          const departmentsResponse = await axios.get("http://localhost:5000/api/departments", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
-
-          // Calculate total employees and departments
-          const totalEmployees = employeesResponse.data.employees?.length || 0
-          const totalDepartments = departmentsResponse.data.departments?.length || 0
-
-          // Set the summary data with fallback values
-          setSummaryData({
-            totalEmployees,
-            totalDepartments,
-            monthlyPayroll: 0, // No easy way to calculate this without specific endpoint
-            leaveApplied: 0,
-            leaveApproved: 0,
-            leavePending: 0,
-            leaveRejected: 0,
-          })
-        } catch (fallbackError) {
-          console.error("Error in fallback data fetching:", fallbackError)
-        }
+        setError("Failed to load dashboard data. Please try again later.")
       } finally {
         setLoading(false)
       }
@@ -125,7 +99,29 @@ const AdminSummary = () => {
   }, [])
 
   if (loading) {
-    return <div className="p-6">Loading summary data...</div>
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error!</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -140,7 +136,7 @@ const AdminSummary = () => {
         />
         <SummaryCard
           icon={<FaBuilding />}
-          text="Total Department"
+          text="Total Departments"
           number={summaryData.totalDepartments}
           color="bg-yellow-600"
         />
