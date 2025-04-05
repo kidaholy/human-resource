@@ -4,6 +4,7 @@ import { useState } from "react"
 import axios from "axios"
 import { useAuth } from "../context/authContext"
 import { useNavigate } from "react-router-dom"
+
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -16,16 +17,18 @@ const Login = () => {
     try {
       const response = await axios.post("http://localhost:5000/api/auth/login", { email, password })
       if (response.data.success) {
-        // alert("Successfully logged in")
         login(response.data.user)
         localStorage.setItem("token", response.data.token)
+
+        // Redirect based on user role
         if (response.data.user.role === "admin") {
           navigate("/admin-dashboard")
+        } else if (response.data.user.role === "department_head") {
+          navigate("/department-head-dashboard")
         } else {
           navigate("/employee-dashboard")
         }
       }
-      console.log(response)
     } catch (error) {
       if (error.response && !error.response.data.success) {
         setError(error.response.data.error)
@@ -111,5 +114,6 @@ const Login = () => {
     </div>
   )
 }
+
 export default Login
 

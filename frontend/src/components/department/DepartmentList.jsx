@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import DataTable from "react-data-table-component"
-import { columns, DepartmentButtons } from "../../utils/DepartmentHelper"
+import { DepartmentButtons } from "../../utils/DepartmentHelper"
 import axios from "axios"
 
 const DepartmentList = () => {
@@ -31,6 +31,11 @@ const DepartmentList = () => {
             _id: dep._id,
             sno: sno++,
             dep_name: dep.dep_name,
+            departmentHead: dep.departmentHead
+              ? dep.departmentHead.userId
+                ? dep.departmentHead.userId.name
+                : "Not Assigned"
+              : "Not Assigned",
             action: <DepartmentButtons _id={dep._id} onDepartmentDelete={onDepartmentDelete} />,
           }))
           setDepartments(data)
@@ -52,6 +57,28 @@ const DepartmentList = () => {
     const records = departments.filter((dep) => dep.dep_name.toLowerCase().includes(e.target.value.toLowerCase()))
     setFilterDepartments(records)
   }
+
+  const columns = [
+    {
+      name: "S No",
+      selector: (row) => row.sno,
+      width: "70px",
+    },
+    {
+      name: "Department Name",
+      selector: (row) => row.dep_name,
+      sortable: true,
+    },
+    {
+      name: "Department Head",
+      selector: (row) => row.departmentHead,
+      sortable: true,
+    },
+    {
+      name: "Action",
+      selector: (row) => row.action,
+    },
+  ]
 
   return (
     <>

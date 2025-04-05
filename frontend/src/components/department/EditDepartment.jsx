@@ -6,26 +6,59 @@ import axios from "axios"
 
 const EditDepartment = () => {
   const { id } = useParams()
-  const [departments, setDepartments] = useState([])
+  const [departments, setDepartments] = useState({
+    dep_name: "",
+    description: "",
+    departmentHead: "",
+  })
   const [depLoading, setDepLoading] = useState(false)
+  const [eligibleHeads, setEligibleHeads] = useState([])
+  const [currentHead, setCurrentHead] = useState(null)
+  const [error, setError] = useState(null)
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchDepartments = async () => {
+    const fetchDepartmentAndEmployees = async () => {
       setDepLoading(true)
+      setError(null)
+
       try {
+        // Fetch department details
         const response = await axios.get(`http://localhost:5000/api/departments/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        console.log(response.data)
+
         if (response.data.success) {
-          setDepartments(response.data.departments)
+          const dept = response.data.departments
+          setDepartments({
+            dep_name: dept.dep_name,
+            description: dept.description,
+            departmentHead: dept.departmentHead ? dept.departmentHead._id : "",
+          })
+
+          if (dept.departmentHead) {
+            setCurrentHead(dept.departmentHead)
+          }
+        }
+
+        // Fetch all employees
+        const employeesResponse = await axios.get(`http://localhost:5000/api/employees`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+
+        if (employeesResponse.data.success) {
+          // Use all employees as potential department heads
+          setEligibleHeads(employeesResponse.data.employees)
         }
       } catch (error) {
-        if (error.response && !error.response.data.success) {
+        console.error("Error fetching data:", error)
+        setError("Failed to load data. Please try again.")
+        if (error.response && error.response.data) {
           console.log(error.response.data.error)
         }
       } finally {
@@ -33,8 +66,8 @@ const EditDepartment = () => {
       }
     }
 
-    fetchDepartments()
-  }, [])
+    fetchDepartmentAndEmployees()
+  }, [id])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -43,6 +76,8 @@ const EditDepartment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError(null)
+
     try {
       const response = await axios.put(`http://localhost:5000/api/departments/${id}`, departments, {
         headers: {
@@ -52,11 +87,11 @@ const EditDepartment = () => {
       if (response.data.success) {
         navigate("/admin-dashboard/departments")
       }
-      console.log(response)
     } catch (error) {
-      console.log(error)
-      if (error.response && !error.response.data.success) {
-        alert(error.response.data.error)
+      console.error("Error updating department:", error)
+      setError("Failed to update department. Please try again.")
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error)
       }
     }
   }
@@ -64,14 +99,19 @@ const EditDepartment = () => {
   return (
     <>
       {depLoading ? (
-        <div>Loading...</div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
       ) : (
         <div className="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md w-96">
           <h2 className="text-2xl font-bold mb-6">Update Department</h2>
+
+          {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+
           <form onSubmit={handleSubmit}>
             <div>
               <label htmlFor="dep_name" className="text-sm font-medium text-gray-700">
-                Deoartment Name
+                Department Name
               </label>
               <input
                 type="text"
@@ -82,9 +122,32 @@ const EditDepartment = () => {
                 className="mt-1 w-full p-2 border border-gray-300 rounded-md"
               />
             </div>
+
+            <div className="mt-3">
+              <label htmlFor="departmentHead" className="block text-sm font-medium text-gray-700">
+                Department Head
+              </label>
+              <select
+                name="departmentHead"
+                value={departments.departmentHead}
+                onChange={handleChange}
+                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              >
+                <option value="">Select Department Head</option>
+                {eligibleHeads.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.userId?.name || "Unknown"} - {emp.designation || "No designation"}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Note: Changing department head will update user roles accordingly.
+              </p>
+            </div>
+
             <div className="mt-3">
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Desription
+                Description
               </label>
               <textarea
                 type="text"

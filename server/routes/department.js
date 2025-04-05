@@ -7,6 +7,8 @@ import {
   updateDepartment,
   deleteDepartment,
   getDepartmentCount,
+  getEligibleDepartmentHeads,
+  getDepartmentHead,
 } from "../controllers/departmentController.js"
 
 const router = express.Router()
@@ -17,6 +19,8 @@ router.get("/:id", authMiddleware, getDepartment)
 router.put("/:id", authMiddleware, updateDepartment)
 router.delete("/:id", authMiddleware, deleteDepartment)
 router.get("/count", authMiddleware, getDepartmentCount)
+router.get("/eligible-heads", authMiddleware, getEligibleDepartmentHeads)
+router.get("/:id/head", authMiddleware, getDepartmentHead)
 
 export default router
 

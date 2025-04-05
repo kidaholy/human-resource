@@ -10,7 +10,16 @@ const RoleBasedRoutes = ({ children, requiredRole }) => {
   }
 
   if (!requiredRole.includes(user.role)) {
-    ;<Navigate to="/unauthorized" />
+    // Redirect based on user role
+    if (user.role === "admin") {
+      return <Navigate to="/admin-dashboard" />
+    } else if (user.role === "department_head") {
+      return <Navigate to="/department-head-dashboard" />
+    } else if (user.role === "employee") {
+      return <Navigate to="/employee-dashboard" />
+    } else {
+      return <Navigate to="/unauthorized" />
+    }
   }
 
   return user ? children : <Navigate to="/login" />

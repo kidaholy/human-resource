@@ -10,7 +10,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  role: { type: String, enum: ["admin", "employee"], required: true },
+  role: {
+    type: String,
+    enum: ["admin", "employee", "department_head"],
+    required: true,
+  },
   profileImage: { type: String },
   createAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

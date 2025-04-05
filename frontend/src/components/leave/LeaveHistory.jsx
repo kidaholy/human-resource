@@ -11,10 +11,56 @@ const LeaveHistory = () => {
   const [error, setError] = useState(null)
   const { user } = useAuth()
 
+  const getStatusBadge = (leave) => {
+    // Department head status
+    if (leave.departmentHeadStatus === "pending") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          Pending Department Head
+        </span>
+      )
+    }
+
+    if (leave.departmentHeadStatus === "rejected") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          Rejected by Department Head
+        </span>
+      )
+    }
+
+    // Admin status (only if department head approved)
+    if (leave.departmentHeadStatus === "approved") {
+      if (leave.adminStatus === "pending") {
+        return (
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Pending Admin</span>
+        )
+      }
+
+      if (leave.adminStatus === "approved") {
+        return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Approved</span>
+      }
+
+      if (leave.adminStatus === "rejected") {
+        return (
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Rejected by Admin</span>
+        )
+      }
+    }
+
+    return <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Unknown</span>
+  }
+
   const columns = [
     {
-      name: "Leave ID",
-      selector: (row) => row.leaveId,
+      name: "Leave Type",
+      selector: (row) => row.leaveType,
+      sortable: true,
+      cell: (row) => <span className="capitalize">{row.leaveType.replace("_", " ")}</span>,
+    },
+    {
+      name: "Duration",
+      selector: (row) => `${row.totalDays} days`,
       sortable: true,
     },
     {
@@ -28,26 +74,26 @@ const LeaveHistory = () => {
       sortable: true,
     },
     {
-      name: "Leave Type",
-      selector: (row) => row.leaveType,
-      sortable: true,
-    },
-    {
       name: "Status",
       selector: (row) => row.status,
       sortable: true,
+      cell: (row) => getStatusBadge(row),
+    },
+    {
+      name: "Comments",
       cell: (row) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            row.status === "approved"
-              ? "bg-green-100 text-green-800"
-              : row.status === "rejected"
-                ? "bg-red-100 text-red-800"
-                : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {row.status.charAt(0).toUpperCase() + row.status.slice(1)}
-        </span>
+        <div>
+          {row.departmentHeadComment && (
+            <div className="text-xs">
+              <span className="font-semibold">Dept Head:</span> {row.departmentHeadComment}
+            </div>
+          )}
+          {row.adminComment && (
+            <div className="text-xs mt-1">
+              <span className="font-semibold">Admin:</span> {row.adminComment}
+            </div>
+          )}
+        </div>
       ),
     },
   ]
@@ -62,46 +108,7 @@ const LeaveHistory = () => {
         })
 
         if (response.data.success) {
-          // Mock data for demonstration
-          const mockData = [
-            {
-              id: 1,
-              leaveId: "LV001",
-              startDate: "2023-05-10",
-              endDate: "2023-05-15",
-              leaveType: "Annual Leave",
-              reason: "Family vacation",
-              status: "approved",
-            },
-            {
-              id: 2,
-              leaveId: "LV002",
-              startDate: "2023-06-20",
-              endDate: "2023-06-22",
-              leaveType: "Sick Leave",
-              reason: "Fever",
-              status: "approved",
-            },
-            {
-              id: 3,
-              leaveId: "LV003",
-              startDate: "2023-07-05",
-              endDate: "2023-07-06",
-              leaveType: "Other",
-              reason: "Personal reasons",
-              status: "rejected",
-            },
-            {
-              id: 4,
-              leaveId: "LV004",
-              startDate: "2023-08-15",
-              endDate: "2023-08-16",
-              leaveType: "Bereavement Leave",
-              reason: "Family emergency",
-              status: "pending",
-            },
-          ]
-          setLeaves(mockData)
+          setLeaves(response.data.leaveHistory)
         }
       } catch (error) {
         console.error("Error fetching leave history:", error)
@@ -120,16 +127,29 @@ const LeaveHistory = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6">Leave History</h2>
-      <div className="bg-white rounded-lg shadow">
-        <DataTable
-          columns={columns}
-          data={leaves}
-          pagination
-          highlightOnHover
-          responsive
-          noDataComponent="No leave records found"
-        />
-      </div>
+
+      {leaves.length === 0 ? (
+        <div className="bg-white p-6 rounded-lg shadow text-center">
+          <p className="text-gray-500">No leave history found</p>
+          <button
+            onClick={() => (window.location.href = "/employee-dashboard/request-leave")}
+            className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700"
+          >
+            Request Leave
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow">
+          <DataTable
+            columns={columns}
+            data={leaves}
+            pagination
+            highlightOnHover
+            responsive
+            noDataComponent="No leave records found"
+          />
+        </div>
+      )}
     </div>
   )
 }

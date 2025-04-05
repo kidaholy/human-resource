@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import Login from "./pages/Login.jsx"
 import AdminDashboard from "./pages/AdminDashboard.jsx"
 import EmployeeDashboard from "./pages/EmployeeDashboard.jsx"
+import DepartmentHeadDashboard from "./pages/DepartmentHeadDashboard.jsx"
 import PrivateRoutes from "./utils/PrivateRoutes.jsx"
 import RoleBasedRoutes from "./utils/RoleBasedRoutes.jsx"
 import AdminSummary from "./components/dashboard/AdminSummary.jsx"
@@ -17,8 +18,10 @@ import ViewSalary from "./components/salary/ViewSalary.jsx"
 import RequestLeave from "./components/leave/RequestLeave.jsx"
 import LeaveHistory from "./components/leave/LeaveHistory.jsx"
 import ManageLeave from "./components/leave/ManageLeave.jsx"
+import DepartmentHeadLeaveManagement from "./components/leave/DepartmentHeadLeaveManagement.jsx"
 import EmployeeProfile from "./components/employee/EmployeeProfile.jsx"
 import EmployeeDashboardSummary from "./components/employee/EmployeeDashboardSummary.jsx"
+import DepartmentHeadSummary from "./components/dashboard/DepartmentHeadSummary.jsx"
 import JobVacancyList from "./components/vacancy/JobVacancyList.jsx"
 import AddVacancy from "./components/vacancy/AddVacancy.jsx"
 
@@ -26,8 +29,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/admin-dashboard" />}></Route>
+        <Route path="/" element={<Navigate to="/login" />}></Route>
         <Route path="/login" element={<Login />}></Route>
+
+        {/* Admin Routes */}
         <Route
           path="/admin-dashboard"
           element={
@@ -42,7 +47,6 @@ function App() {
           <Route path="/admin-dashboard/departments" element={<DepartmentList />}></Route>
           <Route path="/admin-dashboard/add-department" element={<AddDepartment />}></Route>
           <Route path="/admin-dashboard/department/:id" element={<EditDepartment />}></Route>
-
           <Route path="/admin-dashboard/employees" element={<List />}></Route>
           <Route path="/admin-dashboard/add-employee" element={<Add />}></Route>
           <Route path="/admin-dashboard/employees/:id" element={<View />}></Route>
@@ -54,6 +58,25 @@ function App() {
           <Route path="/admin-dashboard/add-vacancy" element={<AddVacancy />}></Route>
         </Route>
 
+        {/* Department Head Routes */}
+        <Route
+          path="/department-head-dashboard"
+          element={
+            <PrivateRoutes>
+              <RoleBasedRoutes requiredRole={["department_head"]}>
+                <DepartmentHeadDashboard />
+              </RoleBasedRoutes>
+            </PrivateRoutes>
+          }
+        >
+          <Route index element={<DepartmentHeadSummary />}></Route>
+          <Route path="/department-head-dashboard/leave-requests" element={<DepartmentHeadLeaveManagement />}></Route>
+          <Route path="/department-head-dashboard/profile" element={<EmployeeProfile />}></Route>
+          <Route path="/department-head-dashboard/request-leave" element={<RequestLeave />}></Route>
+          <Route path="/department-head-dashboard/leave-history" element={<LeaveHistory />}></Route>
+        </Route>
+
+        {/* Employee Routes */}
         <Route
           path="/employee-dashboard"
           element={

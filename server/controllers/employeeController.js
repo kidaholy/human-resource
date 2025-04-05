@@ -156,7 +156,35 @@ const getEmployeeProfile = async (req, res) => {
   }
 }
 
-// Export the new functions along with existing ones
+// Add this function to the existing employeeController.js file
+
+// Get all employees for department head selection
+const getAllEmployeesForDepartmentHead = async (req, res) => {
+  try {
+    // Get all employees with their user and department information
+    const employees = await Employee.find().populate("userId", "name email role").populate("department", "dep_name")
+
+    if (!employees) {
+      return res.status(404).json({
+        success: false,
+        error: "No employees found",
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      employees,
+    })
+  } catch (error) {
+    console.error("Error getting employees for department head selection:", error)
+    return res.status(500).json({
+      success: false,
+      error: "Server error in getting employees for department head selection",
+    })
+  }
+}
+
+// Make sure to export this new function along with the existing ones
 export {
   addEmployee,
   upload,
@@ -166,5 +194,6 @@ export {
   fetchEmployeesByDepId,
   getEmployeeCount,
   getEmployeeProfile,
+  getAllEmployeesForDepartmentHead,
 }
 
