@@ -1,8 +1,12 @@
 import Salary from "../models/Salary.js"
+import Employee from "../models/Employee.js"
+
 const addSalary = async (req, res) => {
   try {
     const { employeeId, basicSalary, allowances, deductions, payDate } = req.body
     const totalSalary = Number.parseInt(basicSalary) + Number.parseInt(allowances) - Number.parseInt(deductions)
+    
+    // Create new salary record
     const newSalary = new Salary({
       employeeId,
       basicSalary,
@@ -13,6 +17,10 @@ const addSalary = async (req, res) => {
     })
 
     await newSalary.save()
+
+    // Update employee's basic salary
+    await Employee.findByIdAndUpdate(employeeId, { salary: basicSalary })
+
     return res.status(200).json({ success: true, message: "Salary added" })
   } catch (error) {
     console.log(error)
@@ -23,10 +31,31 @@ const addSalary = async (req, res) => {
 const getSalary = async (req, res) => {
   try {
     const { id } = req.params
-    const salary = await Salary.find({ employeeId: id }).populate("employeeId", "employeeId")
+    const salary = await Salary.find({ employeeId: id })
+      .populate("employeeId", "employeeId")
+      .sort({ payDate: -1 }) // Sort by payDate in descending order
     return res.status(200).json({ success: true, salary })
   } catch (error) {
     res.status(500).json({ success: false, error: "server error in getting salaries" })
+  }
+}
+
+// Get latest salary for an employee
+const getLatestSalary = async (req, res) => {
+  try {
+    const { id } = req.params
+    const salary = await Salary.findOne({ employeeId: id })
+      .sort({ payDate: -1 }) // Get the most recent salary
+      .select('basicSalary allowances deductions netSalary payDate')
+    
+    if (!salary) {
+      return res.status(404).json({ success: false, error: "No salary records found" })
+    }
+
+    return res.status(200).json({ success: true, salary })
+  } catch (error) {
+    console.error("Error getting latest salary:", error)
+    res.status(500).json({ success: false, error: "server error in getting latest salary" })
   }
 }
 
@@ -53,6 +82,5 @@ const getMonthlyTotal = async (req, res) => {
   }
 }
 
-// Export the new function along with existing ones
-export { addSalary, getSalary, getMonthlyTotal }
+export { addSalary, getSalary, getLatestSalary, getMonthlyTotal }
 

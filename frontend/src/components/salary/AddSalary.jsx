@@ -38,16 +38,24 @@ const AddSalary = () => {
     if (employeeId) {
       setLoading(true)
       try {
-        const response = await axios.get(`http://localhost:5000/api/employees/${employeeId}/basic-salary`, {
+        // Get the employee's basic salary
+        const employeeResponse = await axios.get(`http://localhost:5000/api/employees/${employeeId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
-        if (response.data.success) {
-          setSalary(prev => ({ ...prev, basicSalary: response.data.basicSalary }))
+        
+        if (employeeResponse.data.success) {
+          const employee = employeeResponse.data.employee;
+          setSalary(prev => ({ 
+            ...prev, 
+            basicSalary: employee.salary || 0,
+            employeeId: employee._id 
+          }))
         }
       } catch (error) {
-        console.error("Error fetching basic salary:", error)
+        console.error("Error fetching employee data:", error)
+        alert("Error fetching employee data. Please try again.")
       } finally {
         setLoading(false)
       }

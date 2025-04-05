@@ -6,7 +6,7 @@ import { useAuth } from "../../context/authContext"
 
 const EmployeeProfile = () => {
   const [profile, setProfile] = useState(null)
-  const [netSalary, setNetSalary] = useState(null)
+  const [salary, setSalary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { user } = useAuth()
@@ -30,12 +30,10 @@ const EmployeeProfile = () => {
           setProfile(employeeResponse.data.employee)
           
           // Fetch the latest salary record
-          const salaryResponse = await axios.get(`http://localhost:5000/api/salary/${employeeResponse.data.employee._id}`, { headers })
+          const salaryResponse = await axios.get(`http://localhost:5000/api/salary/${employeeResponse.data.employee._id}/latest`, { headers })
           
-          if (salaryResponse.data.success && salaryResponse.data.salary.length > 0) {
-            // Get the most recent salary record
-            const latestSalary = salaryResponse.data.salary[0]
-            setNetSalary(latestSalary.netSalary)
+          if (salaryResponse.data.success) {
+            setSalary(salaryResponse.data.salary)
           }
         } else {
           setError("Failed to load profile data")
@@ -65,6 +63,15 @@ const EmployeeProfile = () => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount)
+  }
+
+  // Format date
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }
 
   return (
@@ -127,14 +134,35 @@ const EmployeeProfile = () => {
                 {profile.salary ? formatCurrency(profile.salary) : "Not Available"}
               </p>
             </div>
-
-            <div className="border-b pb-2">
-              <p className="text-sm text-gray-500">Net Salary (Current Month)</p>
-              <p className="font-medium text-green-600">
-                {netSalary ? formatCurrency(netSalary) : "Not Available"}
-              </p>
-            </div>
           </div>
+
+          {salary && (
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+              <h4 className="text-lg font-semibold mb-4">Current Salary Details</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Basic Salary</p>
+                  <p className="font-medium">{formatCurrency(salary.basicSalary)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Allowances</p>
+                  <p className="font-medium text-green-600">+ {formatCurrency(salary.allowances)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Deductions</p>
+                  <p className="font-medium text-red-600">- {formatCurrency(salary.deductions)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Net Salary</p>
+                  <p className="font-medium text-teal-600">{formatCurrency(salary.netSalary)}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-sm text-gray-500">Last Updated</p>
+                  <p className="font-medium">{formatDate(salary.payDate)}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6">
             <h4 className="text-lg font-semibold mb-2">Department Information</h4>
