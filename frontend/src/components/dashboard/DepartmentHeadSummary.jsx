@@ -13,45 +13,47 @@ const DepartmentHeadSummary = () => {
     approvedLeaveRequests: 0,
     rejectedLeaveRequests: 0,
     recentLeaveRequests: [],
+    departmentName: "",
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { user } = useAuth()
 
   useEffect(() => {
     const fetchSummaryData = async () => {
       try {
+        setLoading(true)
+
         // Fetch department employees count
-        const employeesResponse = await axios
-          .get("http://localhost:5000/api/employees/department-count", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
-          .catch(() => ({ data: { count: 0 } }))
+        const employeesResponse = await axios.get("http://localhost:5000/api/employees/department-count", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
 
         // Fetch department leave requests
-        const leaveResponse = await axios
-          .get("http://localhost:5000/api/leave/department-requests", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          })
-          .catch(() => ({ data: { leaveRequests: [] } }))
+        const leaveResponse = await axios.get("http://localhost:5000/api/leave/department-requests", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
 
         // Fetch department leave stats
-        const leaveStatsResponse = await axios
-          .get("http://localhost:5000/api/leave/department-stats", {
+        const leaveStatsResponse = await axios.get("http://localhost:5000/api/leave/department-stats", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+
+        // Fetch department employees to get department name
+        const departmentEmployeesResponse = await axios.get(
+          "http://localhost:5000/api/employees/department-employees",
+          {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          })
-          .catch(() => ({
-            data: {
-              pending: 0,
-              approved: 0,
-              rejected: 0,
-            },
-          }))
+          },
+        )
 
         // Set the summary data
         setSummaryData({
@@ -60,9 +62,11 @@ const DepartmentHeadSummary = () => {
           approvedLeaveRequests: leaveStatsResponse.data.approved || 0,
           rejectedLeaveRequests: leaveStatsResponse.data.rejected || 0,
           recentLeaveRequests: leaveResponse.data.leaveRequests || [],
+          departmentName: departmentEmployeesResponse.data.departmentName || "Your Department",
         })
       } catch (error) {
         console.error("Error fetching summary data:", error)
+        setError("Failed to load dashboard data")
       } finally {
         setLoading(false)
       }
@@ -72,12 +76,21 @@ const DepartmentHeadSummary = () => {
   }, [])
 
   if (loading) {
-    return <div className="p-6">Loading summary data...</div>
+    return <div className="p-6">Loading dashboard data...</div>
   }
+
+  if (error) {
+    return <div className="p-6 text-red-500">{error}</div>
+  }
+
+  // Filter for pending leave requests only for the table
+  const pendingLeaveRequests = summaryData.recentLeaveRequests
+    .filter((request) => request.departmentHeadStatus === "pending")
+    .slice(0, 5)
 
   return (
     <div className="p-6">
-      <h3 className="text-2xl font-bold">Department Head Dashboard</h3>
+      <h3 className="text-2xl font-bold">Department Head Dashboard - {summaryData.departmentName}</h3>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <SummaryCard
           icon={<FaUsers />}
@@ -108,7 +121,7 @@ const DepartmentHeadSummary = () => {
       <div className="mt-12">
         <h4 className="text-xl font-bold mb-4">Recent Leave Requests</h4>
 
-        {summaryData.recentLeaveRequests.length === 0 ? (
+        {pendingLeaveRequests.length === 0 ? (
           <div className="bg-white p-6 rounded-lg shadow text-center">
             <p className="text-gray-500">No pending leave requests</p>
           </div>
@@ -135,7 +148,7 @@ const DepartmentHeadSummary = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {summaryData.recentLeaveRequests.slice(0, 5).map((request) => (
+                {pendingLeaveRequests.map((request) => (
                   <tr key={request._id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">

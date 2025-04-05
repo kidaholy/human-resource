@@ -4,7 +4,7 @@ import authRouter from "./routes/auth.js"
 import departmentRouter from "./routes/department.js"
 import employeeRouter from "./routes/employee.js"
 import salaryRouter from "./routes/salary.js"
-import leaveRouter from "./routes/leave.js"
+import { router as leaveRouter } from "./routes/leave.js"
 import vacancyRouter from "./routes/vacancy.js"
 import connectToDatabase from "./db/db.js"
 

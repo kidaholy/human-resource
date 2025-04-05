@@ -24,6 +24,7 @@ import EmployeeDashboardSummary from "./components/employee/EmployeeDashboardSum
 import DepartmentHeadSummary from "./components/dashboard/DepartmentHeadSummary.jsx"
 import JobVacancyList from "./components/vacancy/JobVacancyList.jsx"
 import AddVacancy from "./components/vacancy/AddVacancy.jsx"
+import DepartmentEmployeeList from "./components/department/DepartmentEmployeeList.jsx"
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function App() {
           <Route path="/department-head-dashboard/profile" element={<EmployeeProfile />}></Route>
           <Route path="/department-head-dashboard/request-leave" element={<RequestLeave />}></Route>
           <Route path="/department-head-dashboard/leave-history" element={<LeaveHistory />}></Route>
+          <Route path="/department-head-dashboard/department-employees" element={<DepartmentEmployeeList />}></Route>
         </Route>
 
         {/* Employee Routes */}

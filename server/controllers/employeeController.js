@@ -3,6 +3,7 @@ import Employee from "../models/Employee.js"
 import User from "../models/User.js"
 import bcrypt from "bcrypt"
 import path from "path"
+import Department from "../models/Department.js"
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -184,6 +185,76 @@ const getAllEmployeesForDepartmentHead = async (req, res) => {
   }
 }
 
+// Add this function to fetch employees by department for the department head
+const getDepartmentEmployees = async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    // Find the employee record for the current user (department head)
+    const departmentHead = await Employee.findOne({ userId })
+
+    if (!departmentHead) {
+      return res.status(404).json({ success: false, error: "Department head not found" })
+    }
+
+    // Find the department where this employee is the head
+    const department = await Department.findOne({ departmentHead: departmentHead._id })
+
+    if (!department) {
+      return res.status(404).json({ success: false, error: "You are not assigned as a department head" })
+    }
+
+    // Find all employees in this department
+    const employees = await Employee.find({ department: department._id })
+      .populate("userId", "name email profileImage role")
+      .populate("department", "dep_name")
+
+    return res.status(200).json({
+      success: true,
+      employees,
+      departmentName: department.dep_name,
+    })
+  } catch (error) {
+    console.error("Error fetching department employees:", error)
+    return res.status(500).json({
+      success: false,
+      error: "Server error in fetching department employees",
+    })
+  }
+}
+
+// Add this function to get department employee count
+const getDepartmentEmployeeCount = async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    // Find the employee record for the current user (department head)
+    const departmentHead = await Employee.findOne({ userId })
+
+    if (!departmentHead) {
+      return res.status(404).json({ success: false, error: "Department head not found" })
+    }
+
+    // Find the department where this employee is the head
+    const department = await Department.findOne({ departmentHead: departmentHead._id })
+
+    if (!department) {
+      return res.status(404).json({ success: false, error: "You are not assigned as a department head" })
+    }
+
+    // Count employees in this department
+    const count = await Employee.countDocuments({ department: department._id })
+
+    return res.status(200).json({ success: true, count })
+  } catch (error) {
+    console.error("Error getting department employee count:", error)
+    return res.status(500).json({
+      success: false,
+      error: "Server error in getting department employee count",
+    })
+  }
+}
+
 // Make sure to export this new function along with the existing ones
 export {
   addEmployee,
@@ -195,5 +266,7 @@ export {
   getEmployeeCount,
   getEmployeeProfile,
   getAllEmployeesForDepartmentHead,
+  getDepartmentEmployees,
+  getDepartmentEmployeeCount,
 }
 

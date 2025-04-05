@@ -10,6 +10,7 @@ import {
   updateAdminLeaveStatus,
   getAllLeaveRequests,
   getLeaveStats,
+  getDepartmentLeaveStats,
 } from "../controllers/leaveController.js"
 
 const router = express.Router()
@@ -21,6 +22,7 @@ router.get("/history", authMiddleware, getLeaveHistory)
 // Department Head routes
 router.get("/department-requests", authMiddleware, roleMiddleware(["department_head"]), getDepartmentLeaveRequests)
 router.put("/department-head/:id", authMiddleware, roleMiddleware(["department_head"]), updateDepartmentHeadLeaveStatus)
+router.get("/department-stats", authMiddleware, roleMiddleware(["department_head"]), getDepartmentLeaveStats)
 
 // Admin routes
 router.get("/admin-requests", authMiddleware, roleMiddleware(["admin"]), getAdminLeaveRequests)
@@ -28,5 +30,6 @@ router.put("/admin/:id", authMiddleware, roleMiddleware(["admin"]), updateAdminL
 router.get("/all", authMiddleware, roleMiddleware(["admin"]), getAllLeaveRequests)
 router.get("/stats", authMiddleware, roleMiddleware(["admin"]), getLeaveStats)
 
-export default router
+// Export the router
+export { router }
 
