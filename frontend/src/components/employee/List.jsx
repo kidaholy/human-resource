@@ -26,17 +26,24 @@ const List = () => {
           const data = response.data.employees.map((emp) => ({
             _id: emp._id,
             sno: sno++,
-            dep_name: emp.department?.dep_name || <strong>NULL</strong>,
-            name: emp.userId?.name || <strong>NULL</strong>,
-            dob: emp.dob ? new Date(emp.dob).toLocaleDateString() : <strong>NULL</strong>,
-            profileImage: (
+            dep_name: emp.department?.dep_name || "Not Assigned",
+            name: emp.userId?.name || "Unknown",
+            email: emp.userId?.email || "Not Available",
+            designation: emp.designation || "Not Assigned",
+            dob: emp.dob ? new Date(emp.dob).toLocaleDateString() : "Not Available",
+            profileImage: emp.userId?.profileImage ? (
               <img
-                src={`http://localhost:5000/${emp.userId?.profileImage}`}
+                src={`http://localhost:5000/${emp.userId.profileImage}`}
+                alt={`${emp.userId.name}'s profile`}
                 width={40}
                 height={40}
-                className="rounded-full"
+                className="rounded-full object-cover"
               />
-            ) || <strong>NULL</strong>,
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">{emp.userId?.name?.[0] || "?"}</span>
+              </div>
+            ),
             action: <EmployeeButtons _id={emp._id} />,
           }))
           setEmployees(data)

@@ -13,6 +13,7 @@ import {
   getAllEmployeesForDepartmentHead,
   getDepartmentEmployees,
   getDepartmentEmployeeCount,
+  getEmployeeByUserId,
 } from "../controllers/employeeController.js"
 
 const router = express.Router()
@@ -25,6 +26,8 @@ router.get("/profile", authMiddleware, getEmployeeProfile)
 router.get("/department-employees", authMiddleware, roleMiddleware(["department_head"]), getDepartmentEmployees)
 router.get("/department-count", authMiddleware, roleMiddleware(["department_head"]), getDepartmentEmployeeCount)
 router.post("/add", authMiddleware, upload.single("image"), addEmployee)
+// Add the new route for getting employee by user ID
+router.get("/user/:userId", authMiddleware, getEmployeeByUserId)
 // Parameterized routes last
 router.get("/:id", authMiddleware, getEmployee)
 router.put("/:id", authMiddleware, updateEmployee)

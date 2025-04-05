@@ -47,18 +47,43 @@ const getLeaveHistory = async (req, res) => {
       return res.status(404).json({ success: false, error: "Employee not found" })
     }
 
+    // Check if the employee is a department head
+    const isDepartmentHead = await Department.findOne({ departmentHead: employee._id })
+
     // Get leave history for the employee
     const leaveHistory = await Leave.find({ employeeId: employee._id })
       .populate({
         path: "employeeId",
-        populate: {
-          path: "userId",
-          select: "name email profileImage",
-        },
+        populate: [
+          {
+            path: "userId",
+            select: "name email profileImage",
+          },
+          {
+            path: "department",
+            select: "dep_name",
+          },
+        ],
       })
       .sort({ createdAt: -1 })
 
-    return res.status(200).json({ success: true, leaveHistory })
+    // Calculate total days for each leave request
+    const leaveHistoryWithDays = leaveHistory.map(leave => {
+      const startDate = new Date(leave.startDate)
+      const endDate = new Date(leave.endDate)
+      const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
+      return {
+        ...leave.toObject(),
+        totalDays,
+        isDepartmentHead: !!isDepartmentHead
+      }
+    })
+
+    return res.status(200).json({ 
+      success: true, 
+      leaveHistory: leaveHistoryWithDays,
+      isDepartmentHead: !!isDepartmentHead 
+    })
   } catch (error) {
     console.error("Error fetching leave history:", error)
     return res.status(500).json({ success: false, error: "Server error in fetching leave history" })

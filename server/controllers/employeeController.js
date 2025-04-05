@@ -255,6 +255,25 @@ const getDepartmentEmployeeCount = async (req, res) => {
   }
 }
 
+// Get employee by user ID
+const getEmployeeByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params
+    const employee = await Employee.findOne({ userId })
+      .populate("userId", { password: 0 })
+      .populate("department")
+
+    if (!employee) {
+      return res.status(404).json({ success: false, error: "Employee not found" })
+    }
+
+    return res.status(200).json({ success: true, employee })
+  } catch (error) {
+    console.error("Error getting employee by user ID:", error)
+    return res.status(500).json({ success: false, error: "Server error in getting employee" })
+  }
+}
+
 // Make sure to export this new function along with the existing ones
 export {
   addEmployee,
@@ -268,5 +287,6 @@ export {
   getAllEmployeesForDepartmentHead,
   getDepartmentEmployees,
   getDepartmentEmployeeCount,
+  getEmployeeByUserId,
 }
 

@@ -13,14 +13,17 @@ const EmployeeProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees/profile", {
+        // First get the employee details
+        const employeeResponse = await axios.get(`http://localhost:5000/api/employees/user/${user._id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
 
-        if (response.data.success) {
-          setProfile(response.data.employee)
+        if (employeeResponse.data.success) {
+          setProfile(employeeResponse.data.employee)
+        } else {
+          setError("Failed to load profile data")
         }
       } catch (error) {
         console.error("Error fetching profile:", error)
@@ -30,32 +33,10 @@ const EmployeeProfile = () => {
       }
     }
 
-    // Mock data for demonstration
-    const mockProfile = {
-      userId: {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        profileImage: "uploads/1621234567890.jpg",
-      },
-      employeeId: "EMP001",
-      dob: "1990-05-15",
-      gender: "male",
-      maritalStatus: "married",
-      designation: "Senior Lecturer",
-      department: {
-        _id: "dep123",
-        dep_name: "Computer Science",
-        description: "Department of Computer Science and Engineering",
-      },
-      salary: 50000,
+    if (user?._id) {
+      fetchProfile()
     }
-
-    // Simulate API call
-    setTimeout(() => {
-      setProfile(mockProfile)
-      setLoading(false)
-    }, 500)
-  }, [])
+  }, [user])
 
   if (loading) return <div className="p-4">Loading profile...</div>
   if (error) return <div className="p-4 text-red-500">{error}</div>
@@ -66,17 +47,23 @@ const EmployeeProfile = () => {
       <h2 className="text-2xl font-bold mb-8 text-center">Employee Profile</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="flex flex-col items-center">
-          <img
-            src={`http://localhost:5000/${profile.userId.profileImage}`}
-            alt="Profile"
-            className="w-48 h-48 rounded-full object-cover border-4 border-teal-500"
-            onError={(e) => {
-              e.target.onerror = null
-              e.target.src = "/placeholder.svg?height=200&width=200"
-            }}
-          />
-          <h3 className="text-xl font-semibold mt-4">{profile.userId.name}</h3>
-          <p className="text-gray-600">{profile.designation}</p>
+          {profile.userId?.profileImage ? (
+            <img
+              src={`http://localhost:5000/${profile.userId.profileImage}`}
+              alt="Profile"
+              className="w-48 h-48 rounded-full object-cover border-4 border-teal-500"
+              onError={(e) => {
+                e.target.onerror = null
+                e.target.src = "/placeholder.svg"
+              }}
+            />
+          ) : (
+            <div className="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center border-4 border-teal-500">
+              <span className="text-4xl text-gray-500">{profile.userId?.name?.[0] || "?"}</span>
+            </div>
+          )}
+          <h3 className="text-xl font-semibold mt-4">{profile.userId?.name}</h3>
+          <p className="text-gray-600">{profile.designation || "No Designation"}</p>
           <p className="text-teal-600 font-medium mt-2">ID: {profile.employeeId}</p>
         </div>
 
@@ -84,38 +71,42 @@ const EmployeeProfile = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium">{profile.userId.email}</p>
+              <p className="font-medium">{profile.userId?.email || "No Email"}</p>
             </div>
 
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Department</p>
-              <p className="font-medium">{profile.department.dep_name}</p>
+              <p className="font-medium">{profile.department?.dep_name || "Not Assigned"}</p>
             </div>
 
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Date of Birth</p>
-              <p className="font-medium">{new Date(profile.dob).toLocaleDateString()}</p>
+              <p className="font-medium">
+                {profile.dob ? new Date(profile.dob).toLocaleDateString() : "Not Available"}
+              </p>
             </div>
 
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Gender</p>
-              <p className="font-medium capitalize">{profile.gender}</p>
+              <p className="font-medium capitalize">{profile.gender || "Not Specified"}</p>
             </div>
 
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Marital Status</p>
-              <p className="font-medium capitalize">{profile.maritalStatus}</p>
+              <p className="font-medium capitalize">{profile.maritalStatus || "Not Specified"}</p>
             </div>
 
             <div className="border-b pb-2">
               <p className="text-sm text-gray-500">Salary</p>
-              <p className="font-medium">${profile.salary.toLocaleString()}</p>
+              <p className="font-medium">
+                ${profile.salary ? profile.salary.toLocaleString() : "Not Available"}
+              </p>
             </div>
           </div>
 
           <div className="mt-6">
             <h4 className="text-lg font-semibold mb-2">Department Information</h4>
-            <p className="text-gray-700">{profile.department.description}</p>
+            <p className="text-gray-700">{profile.department?.description || "No department information available"}</p>
           </div>
         </div>
       </div>

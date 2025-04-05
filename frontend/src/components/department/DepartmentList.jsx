@@ -33,7 +33,7 @@ const DepartmentList = () => {
             dep_name: dep.dep_name,
             departmentHead: dep.departmentHead
               ? dep.departmentHead.userId
-                ? dep.departmentHead.userId.name
+                ? `${dep.departmentHead.userId.name} (${dep.departmentHead.userId.email})`
                 : "Not Assigned"
               : "Not Assigned",
             action: <DepartmentButtons _id={dep._id} onDepartmentDelete={onDepartmentDelete} />,

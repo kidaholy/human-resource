@@ -9,6 +9,7 @@ const LeaveHistory = () => {
   const [leaves, setLeaves] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isDepartmentHead, setIsDepartmentHead] = useState(false)
   const { user } = useAuth()
 
   const getStatusBadge = (leave) => {
@@ -60,8 +61,9 @@ const LeaveHistory = () => {
     },
     {
       name: "Duration",
-      selector: (row) => `${row.totalDays} days`,
+      selector: (row) => row.totalDays,
       sortable: true,
+      cell: (row) => `${row.totalDays} day${row.totalDays > 1 ? 's' : ''}`,
     },
     {
       name: "Start Date",
@@ -74,6 +76,12 @@ const LeaveHistory = () => {
       sortable: true,
     },
     {
+      name: "Department",
+      selector: (row) => row.employeeId?.department?.dep_name,
+      sortable: true,
+      omit: !isDepartmentHead,
+    },
+    {
       name: "Status",
       selector: (row) => row.status,
       sortable: true,
@@ -81,17 +89,21 @@ const LeaveHistory = () => {
     },
     {
       name: "Comments",
+      grow: 2,
       cell: (row) => (
-        <div>
+        <div className="py-2">
           {row.departmentHeadComment && (
-            <div className="text-xs">
-              <span className="font-semibold">Dept Head:</span> {row.departmentHeadComment}
+            <div className="text-xs mb-1">
+              <span className="font-semibold text-blue-600">Dept Head:</span> {row.departmentHeadComment}
             </div>
           )}
           {row.adminComment && (
-            <div className="text-xs mt-1">
-              <span className="font-semibold">Admin:</span> {row.adminComment}
+            <div className="text-xs">
+              <span className="font-semibold text-purple-600">Admin:</span> {row.adminComment}
             </div>
+          )}
+          {!row.departmentHeadComment && !row.adminComment && (
+            <span className="text-xs text-gray-500">No comments</span>
           )}
         </div>
       ),
@@ -109,6 +121,7 @@ const LeaveHistory = () => {
 
         if (response.data.success) {
           setLeaves(response.data.leaveHistory)
+          setIsDepartmentHead(response.data.isDepartmentHead)
         }
       } catch (error) {
         console.error("Error fetching leave history:", error)
@@ -126,7 +139,14 @@ const LeaveHistory = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Leave History</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Leave History</h2>
+        {isDepartmentHead && (
+          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+            Department Head View
+          </span>
+        )}
+      </div>
 
       {leaves.length === 0 ? (
         <div className="bg-white p-6 rounded-lg shadow text-center">
@@ -147,6 +167,8 @@ const LeaveHistory = () => {
             highlightOnHover
             responsive
             noDataComponent="No leave records found"
+            defaultSortFieldId={3}
+            defaultSortAsc={false}
           />
         </div>
       )}
