@@ -59,5 +59,19 @@ const deleteDepartment = async (req, res) => {
   }
 }
 
-export { addDepartment, getDepartments, getDepartment, updateDepartment, deleteDepartment }
+// Add this function to the existing departmentController.js file
+
+// Get department count
+const getDepartmentCount = async (req, res) => {
+  try {
+    const count = await Department.countDocuments()
+    return res.status(200).json({ success: true, count })
+  } catch (error) {
+    console.error("Error getting department count:", error)
+    return res.status(500).json({ success: false, error: "Server error in getting department count" })
+  }
+}
+
+// Export the new function along with existing ones
+export { addDepartment, getDepartments, getDepartment, updateDepartment, deleteDepartment, getDepartmentCount }
 

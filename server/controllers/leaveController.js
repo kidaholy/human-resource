@@ -107,5 +107,33 @@ const updateLeaveStatus = async (req, res) => {
   }
 }
 
-export { requestLeave, getLeaveHistory, getAllLeaveRequests, updateLeaveStatus }
+// Get leave statistics
+const getLeaveStats = async (req, res) => {
+  try {
+    // Count total leaves
+    const total = await Leave.countDocuments()
+
+    // Count approved leaves
+    const approved = await Leave.countDocuments({ status: "approved" })
+
+    // Count pending leaves
+    const pending = await Leave.countDocuments({ status: "pending" })
+
+    // Count rejected leaves
+    const rejected = await Leave.countDocuments({ status: "rejected" })
+
+    return res.status(200).json({
+      success: true,
+      total,
+      approved,
+      pending,
+      rejected,
+    })
+  } catch (error) {
+    console.error("Error getting leave statistics:", error)
+    return res.status(500).json({ success: false, error: "Server error in getting leave statistics" })
+  }
+}
+
+export { requestLeave, getLeaveHistory, getAllLeaveRequests, updateLeaveStatus, getLeaveStats }
 

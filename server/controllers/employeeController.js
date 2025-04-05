@@ -127,5 +127,44 @@ const fetchEmployeesByDepId = async (req, res) => {
   }
 }
 
-export { addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId }
+// Get employee count
+const getEmployeeCount = async (req, res) => {
+  try {
+    const count = await Employee.countDocuments()
+    return res.status(200).json({ success: true, count })
+  } catch (error) {
+    console.error("Error getting employee count:", error)
+    return res.status(500).json({ success: false, error: "Server error in getting employee count" })
+  }
+}
+
+// Get employee profile for current user
+const getEmployeeProfile = async (req, res) => {
+  try {
+    const userId = req.user._id
+
+    const employee = await Employee.findOne({ userId }).populate("userId", { password: 0 }).populate("department")
+
+    if (!employee) {
+      return res.status(404).json({ success: false, error: "Employee profile not found" })
+    }
+
+    return res.status(200).json({ success: true, employee })
+  } catch (error) {
+    console.error("Error fetching employee profile:", error)
+    return res.status(500).json({ success: false, error: "Server error in fetching employee profile" })
+  }
+}
+
+// Export the new functions along with existing ones
+export {
+  addEmployee,
+  upload,
+  getEmployees,
+  getEmployee,
+  updateEmployee,
+  fetchEmployeesByDepId,
+  getEmployeeCount,
+  getEmployeeProfile,
+}
 

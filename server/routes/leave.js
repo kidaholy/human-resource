@@ -5,6 +5,7 @@ import {
   getLeaveHistory,
   getAllLeaveRequests,
   updateLeaveStatus,
+  getLeaveStats,
 } from "../controllers/leaveController.js"
 
 const router = express.Router()
@@ -16,6 +17,7 @@ router.get("/history", authMiddleware, getLeaveHistory)
 // Admin routes
 router.get("/all", authMiddleware, getAllLeaveRequests)
 router.put("/:id/status", authMiddleware, updateLeaveStatus)
+router.get("/stats", authMiddleware, getLeaveStats)
 
 export default router
 
