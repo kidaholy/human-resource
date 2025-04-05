@@ -14,6 +14,7 @@ import {
   getDepartmentEmployees,
   getDepartmentEmployeeCount,
   getEmployeeByUserId,
+  getEmployeeBasicSalary
 } from "../controllers/employeeController.js"
 
 const router = express.Router()
@@ -32,6 +33,8 @@ router.get("/user/:userId", authMiddleware, getEmployeeByUserId)
 router.get("/:id", authMiddleware, getEmployee)
 router.put("/:id", authMiddleware, updateEmployee)
 router.get("/department/:id", authMiddleware, fetchEmployeesByDepId)
+// Get employee's basic salary
+router.get("/:id/basic-salary", authMiddleware, getEmployeeBasicSalary)
 
 export default router
 

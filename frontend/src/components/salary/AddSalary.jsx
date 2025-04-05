@@ -15,6 +15,7 @@ const AddSalary = () => {
   })
   const [departments, setDepartments] = useState(null)
   const [employees, setEmployees] = useState([])
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleDepartment = async (e) => {
@@ -29,6 +30,29 @@ const AddSalary = () => {
     }
     getDepartments()
   }, [])
+
+  const handleEmployeeChange = async (e) => {
+    const employeeId = e.target.value
+    setSalary(prev => ({ ...prev, employeeId }))
+    
+    if (employeeId) {
+      setLoading(true)
+      try {
+        const response = await axios.get(`http://localhost:5000/api/employees/${employeeId}/basic-salary`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        if (response.data.success) {
+          setSalary(prev => ({ ...prev, basicSalary: response.data.basicSalary }))
+        }
+      } catch (error) {
+        console.error("Error fetching basic salary:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -90,7 +114,7 @@ const AddSalary = () => {
                 <select
                   type="text"
                   name="employeeId"
-                  onChange={handleChange}
+                  onChange={handleEmployeeChange}
                   className="mt-1v p-2 block w-full border border-gray-300 rounded-md"
                   required
                 >
@@ -109,11 +133,14 @@ const AddSalary = () => {
                 <input
                   type="number"
                   name="basicSalary"
+                  value={salary.basicSalary}
                   onChange={handleChange}
                   placeholder="basic salary"
                   className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
                   required
+                  disabled={loading}
                 />
+                {loading && <p className="text-sm text-gray-500">Loading basic salary...</p>}
               </div>
 
               {/* Allowances */}
@@ -123,7 +150,7 @@ const AddSalary = () => {
                   type="number"
                   name="allowances"
                   onChange={handleChange}
-                  placeholder="aloowances"
+                  placeholder="allowances"
                   className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
                 />
               </div>
