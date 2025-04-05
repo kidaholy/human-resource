@@ -6,6 +6,7 @@ import { useAuth } from "../../context/authContext"
 
 const EmployeeProfile = () => {
   const [profile, setProfile] = useState(null)
+  const [netSalary, setNetSalary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { user } = useAuth()
@@ -13,15 +14,29 @@ const EmployeeProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+          throw new Error("No authentication token found")
+        }
+
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        }
+
         // First get the employee details
-        const employeeResponse = await axios.get(`http://localhost:5000/api/employees/user/${user._id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
+        const employeeResponse = await axios.get(`http://localhost:5000/api/employees/user/${user._id}`, { headers })
 
         if (employeeResponse.data.success) {
           setProfile(employeeResponse.data.employee)
+          
+          // Fetch the latest salary record
+          const salaryResponse = await axios.get(`http://localhost:5000/api/salary/${employeeResponse.data.employee._id}`, { headers })
+          
+          if (salaryResponse.data.success && salaryResponse.data.salary.length > 0) {
+            // Get the most recent salary record
+            const latestSalary = salaryResponse.data.salary[0]
+            setNetSalary(latestSalary.netSalary)
+          }
         } else {
           setError("Failed to load profile data")
         }
@@ -41,6 +56,16 @@ const EmployeeProfile = () => {
   if (loading) return <div className="p-4">Loading profile...</div>
   if (error) return <div className="p-4 text-red-500">{error}</div>
   if (!profile) return <div className="p-4">No profile data found</div>
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
@@ -97,9 +122,16 @@ const EmployeeProfile = () => {
             </div>
 
             <div className="border-b pb-2">
-              <p className="text-sm text-gray-500">Salary</p>
+              <p className="text-sm text-gray-500">Basic Salary</p>
               <p className="font-medium">
-                ${profile.salary ? profile.salary.toLocaleString() : "Not Available"}
+                {profile.salary ? formatCurrency(profile.salary) : "Not Available"}
+              </p>
+            </div>
+
+            <div className="border-b pb-2">
+              <p className="text-sm text-gray-500">Net Salary (Current Month)</p>
+              <p className="font-medium text-green-600">
+                {netSalary ? formatCurrency(netSalary) : "Not Available"}
               </p>
             </div>
           </div>

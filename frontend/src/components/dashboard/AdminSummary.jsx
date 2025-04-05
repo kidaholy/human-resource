@@ -60,10 +60,13 @@ const AdminSummary = () => {
           }
         }
 
-        // Fetch monthly payroll
+        // Fetch monthly net salary total
         const payrollResponse = await axios
           .get("http://localhost:5000/api/salary/monthly-total", { headers })
-          .catch(() => ({ data: { total: 0 } }))
+          .catch((err) => {
+            console.error("Error fetching monthly payroll:", err)
+            return { data: { total: 0 } }
+          })
 
         // Fetch leave statistics
         const leaveResponse = await axios
@@ -124,6 +127,16 @@ const AdminSummary = () => {
     )
   }
 
+  // Format the monthly payroll amount
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)
+  }
+
   return (
     <div className="p-6">
       <h3 className="text-2xl font-bold">Dashboard Overview</h3>
@@ -142,8 +155,8 @@ const AdminSummary = () => {
         />
         <SummaryCard
           icon={<FaMoneyBillWave />}
-          text="Monthly Pay"
-          number={`$${summaryData.monthlyPayroll.toLocaleString()}`}
+          text="Monthly Net Salary"
+          number={formatCurrency(summaryData.monthlyPayroll)}
           color="bg-green-600"
         />
       </div>
