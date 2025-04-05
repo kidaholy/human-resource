@@ -1,10 +1,12 @@
-const SummaryCard = ({ icon, text, number, color }) => {
+const SummaryCard = ({ icon, text, number, color = "bg-primary-600" }) => {
   return (
-    <div className="rounded flex bg-white">
-      <div className={`text-3xl flex justify-center items-center ${color} text-white px-4`}>{icon}</div>
-      <div className="pl-4 py-1">
-        <p className="text-lg font-semibold">{text}</p>
-        <p className="text-xl font-bold">{number}</p>
+    <div className="card overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex flex-col sm:flex-row">
+        <div className={`text-3xl flex justify-center items-center ${color} text-white p-4 sm:p-6`}>{icon}</div>
+        <div className="flex-1 p-4 flex flex-col justify-center items-center sm:items-start">
+          <p className="text-sm font-medium text-gray-500">{text}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800">{number}</p>
+        </div>
       </div>
     </div>
   )

@@ -1,17 +1,7 @@
-import { Outlet } from "react-router-dom"
-import DepartmentHeadSideBar from "../components/dashboard/DepartmentHeadSideBar"
-import NavBar from "../components/dashboard/NavBar"
+import Layout from "../components/layout/Layout"
 
-const DepartmentHeadDashboard = () => {
-  return (
-    <div className="flex">
-      <DepartmentHeadSideBar />
-      <div className="flex-1 ml-64 bg-gray-100 min-h-screen">
-        <NavBar />
-        <Outlet />
-      </div>
-    </div>
-  )
+function DepartmentHeadDashboard() {
+  return <Layout />
 }
 
 export default DepartmentHeadDashboard

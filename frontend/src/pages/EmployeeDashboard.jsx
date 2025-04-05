@@ -1,17 +1,7 @@
-import { Outlet } from "react-router-dom"
-import EmployeeSideBar from "../components/dashboard/EmployeeSideBar"
-import NavBar from "../components/dashboard/NavBar"
+import Layout from "../components/layout/Layout"
 
-const EmployeeDashboard = () => {
-  return (
-    <div className="flex">
-      <EmployeeSideBar />
-      <div className="flex-1 ml-64 bg-gray-100 min-h-screen">
-        <NavBar />
-        <Outlet />
-      </div>
-    </div>
-  )
+function EmployeeDashboard() {
+  return <Layout />
 }
 
 export default EmployeeDashboard
