@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import DataTable from "react-data-table-component"
-import { FaSearch } from "react-icons/fa"
+import { FaSearch, FaEye } from "react-icons/fa"
+import { Link } from "react-router-dom"
 
 const DepartmentEmployeeList = () => {
   const [employees, setEmployees] = useState([])
@@ -44,6 +45,14 @@ const DepartmentEmployeeList = () => {
               />
             ),
             role: emp.userId?.role || "Unknown",
+            action: (
+              <Link
+                to={`/department-head-dashboard/employee/${emp._id}`}
+                className="text-primary-600 hover:text-primary-900 flex items-center gap-2"
+              >
+                <FaEye /> View Profile
+              </Link>
+            ),
           }))
 
           setEmployees(data)
@@ -116,6 +125,11 @@ const DepartmentEmployeeList = () => {
           {row.role === "department_head" ? "Department Head" : "Employee"}
         </span>
       ),
+    },
+    {
+      name: "Actions",
+      cell: (row) => row.action,
+      width: "120px",
     },
   ]
 
