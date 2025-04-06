@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { FaHome, FaUsers, FaCalendarAlt, FaUserTie, FaBriefcase } from "react-icons/fa"
+import { FaHome, FaUsers, FaCalendarAlt, FaUserTie, FaBriefcase, FaPlus } from "react-icons/fa"
 
 const DepartmentHeadSideBar = () => {
   const location = useLocation()
@@ -57,7 +57,11 @@ const DepartmentHeadSideBar = () => {
               My Profile
             </Link>
           </li>
-          {/* New Vacancy Request Links */}
+
+          {/* Vacancy Management Section with clear heading */}
+          <li className="mt-6 mb-2">
+            <h3 className="text-lg font-semibold text-gray-300 px-2">Vacancy Management</h3>
+          </li>
           <li className="mb-2">
             <Link
               to="/department-head-dashboard/my-vacancy-requests"
@@ -66,17 +70,17 @@ const DepartmentHeadSideBar = () => {
               }`}
             >
               <FaBriefcase className="mr-3" />
-              Vacancy Requests
+              My Vacancy Requests
             </Link>
           </li>
           <li className="mb-2">
             <Link
               to="/department-head-dashboard/request-vacancy"
               className={`flex items-center p-2 rounded-md ${
-                isActive("/request-vacancy") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
+                isActive("/request-vacancy") ? "bg-teal-600 text-white" : "bg-yellow-600 text-white hover:bg-yellow-700"
               }`}
             >
-              <FaBriefcase className="mr-3" />
+              <FaPlus className="mr-3" />
               Request New Vacancy
             </Link>
           </li>

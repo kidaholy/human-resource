@@ -89,7 +89,7 @@ const requestVacancy = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Vacancy request submitted successfully",
+      message: "Vacancy request submitted successfully. HR will review your request shortly.",
       vacancy: newVacancy,
     })
   } catch (error) {

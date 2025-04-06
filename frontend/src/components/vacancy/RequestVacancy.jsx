@@ -1,235 +1,243 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { useAuth } from "../../context/authContext"
 
 const RequestVacancy = () => {
-  const [vacancyData, setVacancyData] = useState({
-    position: "",
-    quantity: 1,
-    salary: "",
-    experience: "",
-    eduLevel: "",
-    endDate: "",
-    gender: "any",
-    cgpa: "",
-    description: "",
-    justification: "", // New field for department head to justify the request
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const { user } = useAuth()
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
+  const [departmentId, setDepartmentId] = useState("")
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    requirements: "",
+    responsibilities: "",
+    salary: "",
+    location: "",
+    type: "Full-time",
+    justification: "",
+  })
+
+  useEffect(() => {
+    // Get department ID for the department head
+    const fetchDepartmentId = async () => {
+      try {
+        const response = await axios.get(`/api/employees/user/${user.id}`)
+        if (response.data && response.data.departmentId) {
+          setDepartmentId(response.data.departmentId)
+        }
+      } catch (error) {
+        console.error("Error fetching department:", error)
+        setError("Failed to fetch your department information")
+      }
+    }
+
+    if (user && user.id) {
+      fetchDepartmentId()
+    }
+  }, [user])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setVacancyData({ ...vacancyData, [name]: value })
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
+    setError("")
 
     try {
-      const response = await axios.post("http://localhost:5000/api/vacancies/request", vacancyData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-
-      if (response.data.success) {
-        navigate("/department-head-dashboard/my-vacancy-requests")
+      // Create vacancy request
+      const requestData = {
+        ...formData,
+        departmentId,
+        status: "pending", // All new requests start as pending
+        requestedBy: user.id,
       }
-    } catch (error) {
-      console.error("Error requesting vacancy:", error)
-      setError(error.response?.data?.error || "An error occurred while requesting vacancy")
-    } finally {
+
+      const response = await axios.post("/api/vacancies/request", requestData)
+
+      setSuccess(true)
       setLoading(false)
+
+      // Redirect to vacancy requests list after 2 seconds
+      setTimeout(() => {
+        navigate("/department-head-dashboard/my-vacancy-requests")
+      }, 2000)
+    } catch (err) {
+      setLoading(false)
+      setError(err.response?.data?.message || "Failed to submit vacancy request")
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Request New Job Vacancy</h2>
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Request New Position</h2>
+
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">Why Request a New Position?</h3>
+        <p className="text-blue-700">
+          Use this form to request a new position when your department needs additional staff. Provide a detailed
+          justification explaining why this role is necessary for your department's operations.
+        </p>
+      </div>
+
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Position */}
-          <div>
-            <label htmlFor="position" className="block text-sm font-medium text-gray-700">
-              Position Title
-            </label>
-            <input
-              type="text"
-              id="position"
-              name="position"
-              value={vacancyData.position}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
 
-          {/* Quantity */}
-          <div>
-            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-              Number of Positions
-            </label>
-            <input
-              type="number"
-              id="quantity"
-              name="quantity"
-              value={vacancyData.quantity}
-              onChange={handleChange}
-              min="1"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Salary */}
-          <div>
-            <label htmlFor="salary" className="block text-sm font-medium text-gray-700">
-              Salary
-            </label>
-            <input
-              type="number"
-              id="salary"
-              name="salary"
-              value={vacancyData.salary}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Education Level */}
-          <div>
-            <label htmlFor="eduLevel" className="block text-sm font-medium text-gray-700">
-              Required Education
-            </label>
-            <input
-              type="text"
-              id="eduLevel"
-              name="eduLevel"
-              value={vacancyData.eduLevel}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Experience */}
-          <div>
-            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">
-              Required Experience
-            </label>
-            <input
-              type="text"
-              id="experience"
-              name="experience"
-              value={vacancyData.experience}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
-              Gender Preference
-            </label>
-            <select
-              id="gender"
-              name="gender"
-              value={vacancyData.gender}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-            >
-              <option value="any">Any</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-
-          {/* CGPA */}
-          <div>
-            <label htmlFor="cgpa" className="block text-sm font-medium text-gray-700">
-              Minimum CGPA
-            </label>
-            <input
-              type="number"
-              id="cgpa"
-              name="cgpa"
-              value={vacancyData.cgpa}
-              onChange={handleChange}
-              step="0.01"
-              min="0"
-              max="4.0"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              Application Deadline
-            </label>
-            <input
-              type="date"
-              id="endDate"
-              name="endDate"
-              value={vacancyData.endDate}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Description */}
-          <div className="md:col-span-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Job Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={vacancyData.description}
-              onChange={handleChange}
-              rows="4"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            ></textarea>
-          </div>
-
-          {/* Justification */}
-          <div className="md:col-span-2">
-            <label htmlFor="justification" className="block text-sm font-medium text-gray-700">
-              Justification for Request
-            </label>
-            <textarea
-              id="justification"
-              name="justification"
-              value={vacancyData.justification}
-              onChange={handleChange}
-              rows="4"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              placeholder="Please explain why this position is needed in your department"
-              required
-            ></textarea>
-          </div>
+      {success ? (
+        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-md">
+          Your vacancy request has been submitted successfully! It will be reviewed by HR. Redirecting to your vacancy
+          requests...
         </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Position Title*</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                placeholder="e.g., Senior Software Developer"
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
-        >
-          {loading ? "Submitting..." : "Submit Vacancy Request"}
-        </button>
-      </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range*</label>
+              <input
+                type="text"
+                name="salary"
+                value={formData.salary}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                placeholder="e.g., $60,000 - $80,000"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location*</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                placeholder="e.g., New York, NY (Remote/Hybrid/On-site)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type*</label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Temporary">Temporary</option>
+                <option value="Internship">Internship</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Job Description*</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              placeholder="Provide a brief overview of the position..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Requirements*</label>
+            <textarea
+              name="requirements"
+              value={formData.requirements}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              placeholder="List the qualifications, skills, and experience required..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Responsibilities*</label>
+            <textarea
+              name="responsibilities"
+              value={formData.responsibilities}
+              onChange={handleChange}
+              required
+              rows={3}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              placeholder="Describe the key duties and responsibilities..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Justification for New Position*</label>
+            <div className="mb-2 text-sm text-gray-500">
+              Explain why this position is necessary. Consider including:
+              <ul className="list-disc ml-5 mt-1">
+                <li>Current workload challenges</li>
+                <li>Department growth or changes</li>
+                <li>New projects or initiatives requiring additional staff</li>
+                <li>Impact on department performance if position is not filled</li>
+              </ul>
+            </div>
+            <textarea
+              name="justification"
+              value={formData.justification}
+              onChange={handleChange}
+              required
+              rows={5}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              placeholder="Provide a detailed justification for why this position is needed..."
+            ></textarea>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => navigate("/department-head-dashboard")}
+              className="mr-4 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50"
+            >
+              {loading ? "Submitting..." : "Submit Request"}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   )
 }
