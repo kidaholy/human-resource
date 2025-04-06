@@ -224,6 +224,42 @@ const Add = () => {
               required
             />
           </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Phone</label>
+            <input
+              type="text"
+              name="phone"
+              onChange={handleChange}
+              placeholder="Phone Number"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+            />
+          </div>
+
+          {/* Address */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Address</label>
+            <textarea
+              name="address"
+              onChange={handleChange}
+              placeholder="Enter address"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              rows="3"
+            ></textarea>
+          </div>
+
+          {/* Emergency Contact */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+            <textarea
+              name="emergencyContact"
+              onChange={handleChange}
+              placeholder="Emergency contact details"
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              rows="3"
+            ></textarea>
+          </div>
         </div>
         <button className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">
           Add Employee

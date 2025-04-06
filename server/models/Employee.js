@@ -1,5 +1,5 @@
-import mongoose from "mongoose"
-import { Schema } from "mongoose"
+import mongoose from "mongoose";
+import { Schema } from "mongoose";
 
 const employeeSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
@@ -8,12 +8,19 @@ const employeeSchema = new Schema({
   gender: { type: String },
   maritalStatus: { type: String },
   designation: { type: String },
-  department: { type: Schema.Types.ObjectId, ref: "Department", required: true },
+  department: {
+    type: Schema.Types.ObjectId,
+    ref: "Department",
+    required: true,
+  },
   salary: { type: Number, required: true },
+  joinDate: { type: Date, default: Date.now },
+  phone: { type: String },
+  address: { type: String },
+  emergencyContact: { type: String },
   createdAt: { type: Date, default: Date.now },
   updateAt: { type: Date, default: Date.now },
-})
+});
 
-const Employee = mongoose.model("Employee", employeeSchema)
-export default Employee
-
+const Employee = mongoose.model("Employee", employeeSchema);
+export default Employee;

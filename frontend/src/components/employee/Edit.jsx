@@ -12,10 +12,14 @@ const Edit = () => {
     designation: "",
     salary: 0,
     department: "",
+    phone: "",
+    address: "",
+    emergencyContact: "",
   })
   const [departments, setDepartments] = useState(null)
   const navigate = useNavigate()
   const { id } = useParams()
+
   useEffect(() => {
     const getDepartments = async () => {
       const departments = await fetchDepartments()
@@ -23,8 +27,9 @@ const Edit = () => {
     }
     getDepartments()
   }, [])
+
   useEffect(() => {
-    const fetchEmplopyee = async () => {
+    const fetchEmployee = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/employees/${id}`, {
           headers: {
@@ -36,20 +41,25 @@ const Edit = () => {
           setEmployee((prev) => ({
             ...prev,
             name: employee.userId.name,
-            maritalStatus: employee.maritalStatus,
-            designation: employee.designation,
-            salary: employee.salary,
-            department: employee.department,
+            maritalStatus: employee.maritalStatus || "",
+            designation: employee.designation || "",
+            salary: employee.salary || 0,
+            department: employee.department?._id || "",
+            phone: employee.phone || "",
+            address: employee.address || "",
+            emergencyContact: employee.emergencyContact || "",
           }))
         }
       } catch (error) {
+        console.error("Error fetching employee:", error)
         if (error.response && !error.response.data.success) {
           alert(error.response.data.error)
         }
       }
     }
-    fetchEmplopyee()
-  }, [])
+
+    fetchEmployee()
+  }, [id])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -68,9 +78,8 @@ const Edit = () => {
       if (response.data.success) {
         navigate("/admin-dashboard/employees")
       }
-      console.log(response)
     } catch (error) {
-      console.log(error)
+      console.error("Error updating employee:", error)
       if (error.response && !error.response.data.success) {
         alert(error.response.data.error)
       } else {
@@ -114,6 +123,8 @@ const Edit = () => {
                   <option value="">Select Status</option>
                   <option value="single">Single</option>
                   <option value="married">Married</option>
+                  <option value="divorced">Divorced</option>
+                  <option value="widowed">Widowed</option>
                 </select>
               </div>
 
@@ -144,15 +155,27 @@ const Edit = () => {
                 />
               </div>
 
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  onChange={handleChange}
+                  value={employee.phone}
+                  placeholder="Phone Number"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                />
+              </div>
+
               {/* Department */}
-              <div className="col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Department</label>
                 <select
-                  type="text"
                   name="department"
                   value={employee.department}
                   onChange={handleChange}
-                  className="mt-1v p-2 block w-full border border-gray-300 rounded-md"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
                   required
                 >
                   <option value="">select Department</option>
@@ -163,10 +186,53 @@ const Edit = () => {
                   ))}
                 </select>
               </div>
+
+              {/* Address */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Address</label>
+                <textarea
+                  name="address"
+                  onChange={handleChange}
+                  value={employee.address}
+                  placeholder="Enter address"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              {/* Emergency Contact */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Emergency Contact</label>
+                <textarea
+                  name="emergencyContact"
+                  onChange={handleChange}
+                  value={employee.emergencyContact}
+                  placeholder="Emergency contact details"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                  rows="3"
+                ></textarea>
+              </div>
             </div>
-            <button className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md">
-              Edit Employee
-            </button>
+            <div className="mt-6 flex flex-col md:flex-row gap-4">
+              <button
+                type="submit"
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md"
+              >
+                Update Employee
+              </button>
+              <a
+                href={`/admin-dashboard/add-salary/${id}`}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-center"
+              >
+                Manage Salary
+              </a>
+              <a
+                href={`/admin-dashboard/manage-leave/${id}`}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md text-center"
+              >
+                Manage Leave
+              </a>
+            </div>
           </form>
         </div>
       ) : (

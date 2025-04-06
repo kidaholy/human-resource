@@ -98,23 +98,28 @@ export const EmployeeButtons = ({ _id }) => {
     <div className="flex space-x-3">
       <button
         onClick={() => navigate(`/admin-dashboard/employees/${_id}`)}
-        className="px-3 py-1 bg-teal-500 text-white hover:bg-red-600"
+        className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
       >
         View
       </button>
       <button
         onClick={() => navigate(`/admin-dashboard/employees/edit/${_id}`)}
-        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-red-600"
+        className="px-3 py-1 bg-teal-500 text-white rounded-md hover:bg-teal-600"
       >
         Edit
       </button>
       <button
-        className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-red-600"
+        className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600"
         onClick={() => navigate(`/admin-dashboard/employees/salary/${_id}`)}
       >
         Salary
       </button>
-      <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Leave</button>
+      <button
+        className="px-3 py-1 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+        onClick={() => navigate(`/admin-dashboard/employees/leave/${_id}`)}
+      >
+        Leave
+      </button>
     </div>
   )
 }

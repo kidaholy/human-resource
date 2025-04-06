@@ -19,8 +19,22 @@ const upload = multer({ storage: storage })
 
 const addEmployee = async (req, res) => {
   try {
-    const { name, email, employeeId, dob, gender, maritalStatus, designation, department, salary, password, role } =
-      req.body
+    const {
+      name,
+      email,
+      employeeId,
+      dob,
+      gender,
+      maritalStatus,
+      designation,
+      department,
+      salary,
+      password,
+      role,
+      phone,
+      address,
+      emergencyContact,
+    } = req.body
 
     const user = await User.findOne({ email })
     if (user) {
@@ -48,6 +62,9 @@ const addEmployee = async (req, res) => {
       designation,
       department,
       salary,
+      phone,
+      address,
+      emergencyContact,
     })
 
     await newEmployee.save()
@@ -80,7 +97,7 @@ const getEmployee = async (req, res) => {
 const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params
-    const { name, maritalStatus, designation, department, salary } = req.body
+    const { name, maritalStatus, designation, department, salary, phone, address, emergencyContact } = req.body
 
     const employee = await Employee.findById({ _id: id })
     if (!employee) {
@@ -101,11 +118,15 @@ const updateEmployee = async (req, res) => {
     const updateEmployee = await Employee.findByIdAndUpdate(
       { _id: id },
       {
-        maritalStatus,
         designation,
+        maritalStatus,
         salary,
         department,
+        phone,
+        address,
+        emergencyContact,
       },
+      { new: true },
     )
 
     if (!updateEmployee || !updateUser) {
@@ -259,9 +280,7 @@ const getDepartmentEmployeeCount = async (req, res) => {
 const getEmployeeByUserId = async (req, res) => {
   try {
     const { userId } = req.params
-    const employee = await Employee.findOne({ userId })
-      .populate("userId", { password: 0 })
-      .populate("department")
+    const employee = await Employee.findOne({ userId }).populate("userId", { password: 0 }).populate("department")
 
     if (!employee) {
       return res.status(404).json({ success: false, error: "Employee not found" })
@@ -278,15 +297,15 @@ const getEmployeeByUserId = async (req, res) => {
 const getEmployeeBasicSalary = async (req, res) => {
   try {
     const { id } = req.params
-    const employee = await Employee.findById(id).select('salary')
-    
+    const employee = await Employee.findById(id).select("salary")
+
     if (!employee) {
       return res.status(404).json({ success: false, error: "Employee not found" })
     }
 
-    return res.status(200).json({ 
-      success: true, 
-      basicSalary: employee.salary 
+    return res.status(200).json({
+      success: true,
+      basicSalary: employee.salary,
     })
   } catch (error) {
     console.error("Error getting employee basic salary:", error)
@@ -308,6 +327,6 @@ export {
   getDepartmentEmployees,
   getDepartmentEmployeeCount,
   getEmployeeByUserId,
-  getEmployeeBasicSalary
+  getEmployeeBasicSalary,
 }
 
