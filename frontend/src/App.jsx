@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { AuthProvider } from "./context/authContext.jsx"
 import Login from "./pages/Login.jsx"
 import AdminDashboard from "./pages/AdminDashboard.jsx"
 import EmployeeDashboard from "./pages/EmployeeDashboard.jsx"
@@ -26,77 +27,110 @@ import JobVacancyList from "./components/vacancy/JobVacancyList.jsx"
 import AddVacancy from "./components/vacancy/AddVacancy.jsx"
 import DepartmentEmployeeList from "./components/department/DepartmentEmployeeList.jsx"
 import DepartmentEmployeeProfile from "./components/employee/DepartmentEmployeeProfile"
+import Welcome from "./pages/Welcome.jsx"
+import PublicVacancies from "./pages/PublicVacancies.jsx"
+import ApplicantRegistration from "./pages/ApplicantRegistration.jsx"
+import ApplyJob from "./pages/ApplyJob.jsx"
+import ApplicantDashboard from "./pages/ApplicantDashboard.jsx"
+import ManageApplicants from "./components/applicant/ManageApplicants.jsx"
+import ApplicantDetails from "./components/applicant/ApplicantDetails.jsx"
+import RequestVacancy from "./components/vacancy/RequestVacancy.jsx"
+import ManageVacancyRequests from "./components/vacancy/ManageVacancyRequests.jsx"
+import DepartmentVacancyRequests from "./components/vacancy/DepartmentVacancyRequests.jsx"
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" />}></Route>
-        <Route path="/login" element={<Login />}></Route>
+      <AuthProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Welcome />}></Route>
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/vacancies" element={<PublicVacancies />}></Route>
+          <Route path="/register" element={<ApplicantRegistration />}></Route>
+          <Route path="/apply/:id" element={<ApplyJob />}></Route>
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin-dashboard"
-          element={
-            <PrivateRoutes>
-              <RoleBasedRoutes requiredRole={["admin"]}>
-                <AdminDashboard />
-              </RoleBasedRoutes>
-            </PrivateRoutes>
-          }
-        >
-          <Route index element={<AdminSummary />}></Route>
-          <Route path="/admin-dashboard/departments" element={<DepartmentList />}></Route>
-          <Route path="/admin-dashboard/add-department" element={<AddDepartment />}></Route>
-          <Route path="/admin-dashboard/department/:id" element={<EditDepartment />}></Route>
-          <Route path="/admin-dashboard/employees" element={<List />}></Route>
-          <Route path="/admin-dashboard/add-employee" element={<Add />}></Route>
-          <Route path="/admin-dashboard/employees/:id" element={<View />}></Route>
-          <Route path="/admin-dashboard/employees/edit/:id" element={<Edit />}></Route>
-          <Route path="/admin-dashboard/salary/add" element={<AddSalary />}></Route>
-          <Route path="/admin-dashboard/employees/salary/:id" element={<ViewSalary />}></Route>
-          <Route path="/admin-dashboard/leave" element={<ManageLeave />}></Route>
-          <Route path="/admin-dashboard/vacancies" element={<JobVacancyList />}></Route>
-          <Route path="/admin-dashboard/add-vacancy" element={<AddVacancy />}></Route>
-        </Route>
+          {/* Applicant Routes */}
+          <Route
+            path="/applicant-dashboard"
+            element={
+              <PrivateRoutes>
+                <RoleBasedRoutes requiredRole={["applicant"]}>
+                  <ApplicantDashboard />
+                </RoleBasedRoutes>
+              </PrivateRoutes>
+            }
+          ></Route>
 
-        {/* Department Head Routes */}
-        <Route
-          path="/department-head-dashboard"
-          element={
-            <PrivateRoutes>
-              <RoleBasedRoutes requiredRole={["department_head"]}>
-                <DepartmentHeadDashboard />
-              </RoleBasedRoutes>
-            </PrivateRoutes>
-          }
-        >
-          <Route index element={<DepartmentHeadSummary />}></Route>
-          <Route path="/department-head-dashboard/leave-requests" element={<DepartmentHeadLeaveManagement />}></Route>
-          <Route path="/department-head-dashboard/profile" element={<EmployeeProfile />}></Route>
-          <Route path="/department-head-dashboard/request-leave" element={<RequestLeave />}></Route>
-          <Route path="/department-head-dashboard/leave-history" element={<LeaveHistory />}></Route>
-          <Route path="/department-head-dashboard/department-employees" element={<DepartmentEmployeeList />}></Route>
-          <Route path="/department-head-dashboard/employee/:id" element={<DepartmentEmployeeProfile />}></Route>
-        </Route>
+          {/* Admin Routes */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <PrivateRoutes>
+                <RoleBasedRoutes requiredRole={["admin"]}>
+                  <AdminDashboard />
+                </RoleBasedRoutes>
+              </PrivateRoutes>
+            }
+          >
+            <Route index element={<AdminSummary />}></Route>
+            <Route path="/admin-dashboard/departments" element={<DepartmentList />}></Route>
+            <Route path="/admin-dashboard/add-department" element={<AddDepartment />}></Route>
+            <Route path="/admin-dashboard/department/:id" element={<EditDepartment />}></Route>
+            <Route path="/admin-dashboard/employees" element={<List />}></Route>
+            <Route path="/admin-dashboard/add-employee" element={<Add />}></Route>
+            <Route path="/admin-dashboard/employees/:id" element={<View />}></Route>
+            <Route path="/admin-dashboard/employees/edit/:id" element={<Edit />}></Route>
+            <Route path="/admin-dashboard/salary/add" element={<AddSalary />}></Route>
+            <Route path="/admin-dashboard/employees/salary/:id" element={<ViewSalary />}></Route>
+            <Route path="/admin-dashboard/leave" element={<ManageLeave />}></Route>
+            <Route path="/admin-dashboard/vacancies" element={<JobVacancyList />}></Route>
+            <Route path="/admin-dashboard/add-vacancy" element={<AddVacancy />}></Route>
+            <Route path="/admin-dashboard/applicants" element={<ManageApplicants />}></Route>
+            <Route path="/admin-dashboard/applicants/:id" element={<ApplicantDetails />}></Route>
+            <Route path="/admin-dashboard/vacancy-requests" element={<ManageVacancyRequests />}></Route>
+          </Route>
 
-        {/* Employee Routes */}
-        <Route
-          path="/employee-dashboard"
-          element={
-            <PrivateRoutes>
-              <RoleBasedRoutes requiredRole={["employee"]}>
-                <EmployeeDashboard />
-              </RoleBasedRoutes>
-            </PrivateRoutes>
-          }
-        >
-          <Route index element={<EmployeeDashboardSummary />}></Route>
-          <Route path="/employee-dashboard/profile" element={<EmployeeProfile />}></Route>
-          <Route path="/employee-dashboard/request-leave" element={<RequestLeave />}></Route>
-          <Route path="/employee-dashboard/leave-history" element={<LeaveHistory />}></Route>
-        </Route>
-      </Routes>
+          {/* Department Head Routes */}
+          <Route
+            path="/department-head-dashboard"
+            element={
+              <PrivateRoutes>
+                <RoleBasedRoutes requiredRole={["department_head"]}>
+                  <DepartmentHeadDashboard />
+                </RoleBasedRoutes>
+              </PrivateRoutes>
+            }
+          >
+            <Route index element={<DepartmentHeadSummary />}></Route>
+            <Route path="/department-head-dashboard/leave-requests" element={<DepartmentHeadLeaveManagement />}></Route>
+            <Route path="/department-head-dashboard/profile" element={<EmployeeProfile />}></Route>
+            <Route path="/department-head-dashboard/request-leave" element={<RequestLeave />}></Route>
+            <Route path="/department-head-dashboard/leave-history" element={<LeaveHistory />}></Route>
+            <Route path="/department-head-dashboard/department-employees" element={<DepartmentEmployeeList />}></Route>
+            <Route path="/department-head-dashboard/employee/:id" element={<DepartmentEmployeeProfile />}></Route>
+            <Route path="/department-head-dashboard/request-vacancy" element={<RequestVacancy />}></Route>
+            <Route path="/department-head-dashboard/my-vacancies" element={<DepartmentVacancyRequests />}></Route>
+          </Route>
+
+          {/* Employee Routes */}
+          <Route
+            path="/employee-dashboard"
+            element={
+              <PrivateRoutes>
+                <RoleBasedRoutes requiredRole={["employee"]}>
+                  <EmployeeDashboard />
+                </RoleBasedRoutes>
+              </PrivateRoutes>
+            }
+          >
+            <Route index element={<EmployeeDashboardSummary />}></Route>
+            <Route path="/employee-dashboard/profile" element={<EmployeeProfile />}></Route>
+            <Route path="/employee-dashboard/request-leave" element={<RequestLeave />}></Route>
+            <Route path="/employee-dashboard/leave-history" element={<LeaveHistory />}></Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

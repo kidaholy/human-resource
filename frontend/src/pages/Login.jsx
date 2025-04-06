@@ -25,12 +25,14 @@ const Login = () => {
         login(response.data.user)
         localStorage.setItem("token", response.data.token)
 
-        // Redirect based on user role
-        if (response.data.user.role === "admin") {
+        // Redirect based on role
+        if (response.data.user.role === "applicant") {
+          navigate("/applicant-dashboard")
+        } else if (response.data.user.role === "admin") {
           navigate("/admin-dashboard")
         } else if (response.data.user.role === "department_head") {
           navigate("/department-head-dashboard")
-        } else {
+        } else if (response.data.user.role === "employee") {
           navigate("/employee-dashboard")
         }
       }

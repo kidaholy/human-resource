@@ -1,78 +1,77 @@
 import mongoose from "mongoose"
-import { Schema } from "mongoose"
 
-const applicantSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  vacancy: {
-    type: Schema.Types.ObjectId,
-    ref: "JobVacancy",
-    required: true,
-  },
-  fullName: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  dob: {
-    type: Date,
-    required: true,
-  },
-  gender: {
-    type: String,
-    enum: ["male", "female", "other"],
-    required: true,
-  },
-  education: {
-    degree: {
+const applicationSchema = new mongoose.Schema(
+  {
+    vacancy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "JobVacancy",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "under_review", "shortlisted", "rejected", "hired"],
+      default: "pending",
+    },
+    resume: {
       type: String,
       required: true,
     },
-    institution: {
+    coverLetter: {
+      type: String,
+    },
+    applicationDate: {
+      type: Date,
+      default: Date.now,
+    },
+    feedback: {
+      type: String,
+    },
+  },
+  { timestamps: true },
+)
+
+const applicantSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    name: {
       type: String,
       required: true,
     },
-    graduationYear: {
-      type: Number,
+    email: {
+      type: String,
       required: true,
     },
-    cgpa: {
-      type: Number,
+    phone: {
+      type: String,
       required: true,
     },
+    education: [
+      {
+        degree: String,
+        institution: String,
+        fieldOfStudy: String,
+        graduationYear: Number,
+      },
+    ],
+    experience: [
+      {
+        title: String,
+        company: String,
+        location: String,
+        startDate: Date,
+        endDate: Date,
+        description: String,
+      },
+    ],
+    skills: [String],
+    applications: [applicationSchema],
   },
-  experience: {
-    type: String,
-  },
-  resume: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["pending", "shortlisted", "interviewed", "selected", "rejected"],
-    default: "pending",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-})
+  { timestamps: true },
+)
 
-const Applicant = mongoose.model("Applicant", applicantSchema)
-export default Applicant
+export default mongoose.model("Applicant", applicantSchema)
 

@@ -5,7 +5,8 @@ import { createContext, useContext, useEffect, useState } from "react"
 
 const userContext = createContext()
 
-const authContext = ({ children }) => {
+// Rename the component to AuthProvider to match the import in App.jsx
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -51,5 +52,5 @@ const authContext = ({ children }) => {
 }
 
 export const useAuth = () => useContext(userContext)
-export default authContext
+// Remove the default export since we're using named exports
 
