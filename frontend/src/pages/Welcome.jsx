@@ -2,65 +2,44 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { FaBuilding, FaUsers, FaCalendarAlt, FaChartLine, FaBriefcase, FaArrowRight } from "react-icons/fa"
+import {
+  FaBuilding,
+  FaUsers,
+  FaCalendarAlt,
+  FaChartLine,
+  FaBriefcase,
+  FaArrowRight,
+  FaMoneyBillWave,
+  FaGraduationCap,
+} from "react-icons/fa"
 import axios from "axios"
 
 const Welcome = () => {
   const [vacancies, setVacancies] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchVacancies = async () => {
+      setLoading(true)
+      setError(null)
       try {
-        const response = await axios.get("http://localhost:5000/api/vacancies/featured")
+        // Try to fetch featured vacancies first
+        const response = await axios.get("http://localhost:5000/api/vacancies/public")
+
         if (response.data.success) {
-          setVacancies(response.data.vacancies)
+          // Limit to 3 most recent vacancies for the featured section
+          const featuredVacancies = response.data.vacancies
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 3)
+
+          setVacancies(featuredVacancies)
         } else {
-          // If API doesn't have featured endpoint, use mock data
-          setVacancies([
-            {
-              _id: "vac1",
-              position: "Senior Lecturer",
-              department: { dep_name: "Computer Science" },
-              endDate: "2023-12-31",
-            },
-            {
-              _id: "vac2",
-              position: "Assistant Professor",
-              department: { dep_name: "Electrical Engineering" },
-              endDate: "2023-11-30",
-            },
-            {
-              _id: "vac3",
-              position: "Lab Assistant",
-              department: { dep_name: "Computer Science" },
-              endDate: "2023-10-15",
-            },
-          ])
+          throw new Error("Failed to fetch vacancies")
         }
       } catch (error) {
         console.error("Error fetching vacancies:", error)
-        // Use mock data if API fails
-        setVacancies([
-          {
-            _id: "vac1",
-            position: "Senior Lecturer",
-            department: { dep_name: "Computer Science" },
-            endDate: "2023-12-31",
-          },
-          {
-            _id: "vac2",
-            position: "Assistant Professor",
-            department: { dep_name: "Electrical Engineering" },
-            endDate: "2023-11-30",
-          },
-          {
-            _id: "vac3",
-            position: "Lab Assistant",
-            department: { dep_name: "Computer Science" },
-            endDate: "2023-10-15",
-          },
-        ])
+        setError("Unable to load job openings. Please try again later.")
       } finally {
         setLoading(false)
       }
@@ -151,27 +130,62 @@ const Welcome = () => {
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
             </div>
+          ) : error ? (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 max-w-2xl mx-auto">
+              <p>{error}</p>
+            </div>
+          ) : vacancies.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="bg-white rounded-lg shadow-md p-8 max-w-2xl mx-auto">
+                <FaBriefcase className="text-gray-300 text-5xl mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Open Positions</h3>
+                <p className="text-gray-600 mb-4">There are currently no job openings available.</p>
+                <p className="text-gray-600">Please check back later for new opportunities.</p>
+              </div>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {vacancies.map((vacancy) => (
                 <div
                   key={vacancy._id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div className="bg-teal-600 text-white p-4">
+                  <div className="bg-teal-600 p-5 text-white">
                     <h3 className="text-xl font-bold">{vacancy.position}</h3>
-                    <p className="text-sm">{vacancy.department.dep_name} Department</p>
+                    <p className="text-sm flex items-center mt-1">
+                      <FaBuilding className="mr-2" />
+                      {vacancy.department?.dep_name || "University Department"}
+                    </p>
                   </div>
                   <div className="p-6">
-                    <p className="text-gray-600 mb-4">
-                      Application Deadline: {new Date(vacancy.endDate).toLocaleDateString()}
-                    </p>
-                    <Link
-                      to={`/apply/${vacancy._id}`}
-                      className="inline-flex items-center text-teal-600 hover:text-teal-700 font-medium"
-                    >
-                      Apply Now <FaArrowRight className="ml-2" />
-                    </Link>
+                    <div className="mb-4 space-y-2">
+                      <div className="flex items-center text-gray-700">
+                        <FaMoneyBillWave className="mr-2 text-teal-600" />
+                        <span>Salary: ${vacancy.salary?.toLocaleString() || "Competitive"}</span>
+                      </div>
+                      <div className="flex items-center text-gray-700">
+                        <FaGraduationCap className="mr-2 text-teal-600" />
+                        <span>{vacancy.eduLevel || "Degree Required"}</span>
+                      </div>
+                      <div className="flex items-center text-gray-700">
+                        <FaCalendarAlt className="mr-2 text-teal-600" />
+                        <span>Deadline: {new Date(vacancy.endDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-between items-center">
+                      <span className="text-xs text-gray-500">
+                        {vacancy.createdAt
+                          ? `Posted: ${new Date(vacancy.createdAt).toLocaleDateString()}`
+                          : "Recently Posted"}
+                      </span>
+                      <Link
+                        to={`/apply/${vacancy._id}`}
+                        className="inline-flex items-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-md transition-colors"
+                      >
+                        Apply Now <FaArrowRight className="ml-2" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -181,7 +195,7 @@ const Welcome = () => {
           <div className="text-center mt-10">
             <Link
               to="/vacancies"
-              className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-md transition-colors"
+              className="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-md transition-colors"
             >
               View All Positions <FaArrowRight className="ml-2" />
             </Link>

@@ -42,43 +42,17 @@ const ApplyJob = () => {
   useEffect(() => {
     const fetchVacancy = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/vacancies/${id}`)
+        setLoading(true)
+        const response = await axios.get(`http://localhost:5000/api/vacancies/public/${id}`)
+
         if (response.data.success) {
           setVacancy(response.data.vacancy)
         } else {
-          // If API doesn't return success, use mock data
-          setVacancy({
-            _id: id,
-            position: "Senior Lecturer",
-            department: { _id: "dep1", dep_name: "Computer Science" },
-            quantity: 2,
-            salary: 50000,
-            experience: "Minimum 5 years of teaching experience",
-            eduLevel: "PhD in Computer Science or related field",
-            endDate: "2023-12-31",
-            status: "active",
-            createdAt: "2023-05-15",
-            description:
-              "We are looking for a Senior Lecturer to join our Computer Science department. The ideal candidate will have extensive teaching experience and research background in computer science.",
-          })
+          setError("Failed to load job details. Please try again.")
         }
       } catch (error) {
         console.error("Error fetching vacancy:", error)
-        // Use mock data if API fails
-        setVacancy({
-          _id: id,
-          position: "Senior Lecturer",
-          department: { _id: "dep1", dep_name: "Computer Science" },
-          quantity: 2,
-          salary: 50000,
-          experience: "Minimum 5 years of teaching experience",
-          eduLevel: "PhD in Computer Science or related field",
-          endDate: "2023-12-31",
-          status: "active",
-          createdAt: "2023-05-15",
-          description:
-            "We are looking for a Senior Lecturer to join our Computer Science department. The ideal candidate will have extensive teaching experience and research background in computer science.",
-        })
+        setError("Failed to load job details. Please try again.")
       } finally {
         setLoading(false)
       }
@@ -243,7 +217,45 @@ const ApplyJob = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading job details...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!vacancy && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+          <div className="text-red-500 text-5xl mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold mb-4">Job Not Found</h2>
+          <p className="text-gray-600 mb-6">
+            {error || "The job position you're looking for doesn't exist or has been removed."}
+          </p>
+          <Link
+            to="/vacancies"
+            className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-md transition-colors"
+          >
+            Browse Available Jobs
+          </Link>
+        </div>
       </div>
     )
   }
