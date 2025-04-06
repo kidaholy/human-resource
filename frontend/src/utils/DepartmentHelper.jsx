@@ -2,6 +2,7 @@
 
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import { FaEdit, FaTrash } from "react-icons/fa"
 
 export const columns = [
   {
@@ -22,7 +23,7 @@ export const columns = [
 export const DepartmentButtons = ({ _id, onDepartmentDelete }) => {
   const navigate = useNavigate()
   const handleDelete = async (id) => {
-    const confirm = window.confirm("Do you want to delete?")
+    const confirm = window.confirm("Are you sure you want to delete this department? This action cannot be undone.")
     if (confirm) {
       try {
         const response = await axios.delete(`http://localhost:5000/api/departments/${id}`, {
@@ -38,20 +39,26 @@ export const DepartmentButtons = ({ _id, onDepartmentDelete }) => {
       } catch (error) {
         if (error.response && !error.response.data.success) {
           console.log(error.response.data.error)
+          alert("Error deleting department: " + (error.response.data.error || "Unknown error"))
         }
       }
     }
   }
   return (
-    <div className="flex space-x-3">
+    <div className="flex space-x-2">
       <button
-        className="px-3 py-1 bg-teal-600 text-white"
+        className="p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
         onClick={() => navigate(`/admin-dashboard/department/${_id}`)}
+        title="Edit Department"
       >
-        Edit
+        <FaEdit />
       </button>
-      <button className="px-3 py-1 bg-red-600 text-white" onClick={() => handleDelete(_id)}>
-        Delete
+      <button
+        className="p-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+        onClick={() => handleDelete(_id)}
+        title="Delete Department"
+      >
+        <FaTrash />
       </button>
     </div>
   )
