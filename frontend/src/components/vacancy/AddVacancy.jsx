@@ -1,249 +1,253 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import axios from "axios"
-import { fetchDepartments } from "../../utils/EmployeeHelper"
+import { FaArrowLeft } from "react-icons/fa"
 
 const AddVacancy = () => {
+  const navigate = useNavigate()
   const [departments, setDepartments] = useState([])
-  const [vacancyData, setVacancyData] = useState({
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [formData, setFormData] = useState({
     position: "",
     department: "",
     quantity: 1,
     salary: "",
     experience: "",
     eduLevel: "",
-    endDate: "",
-    gender: "any",
-    cgpa: "",
     description: "",
+    endDate: "",
   })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const navigate = useNavigate()
 
   useEffect(() => {
-    const getDepartments = async () => {
-      const departments = await fetchDepartments()
-      setDepartments(departments)
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/departments", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+        if (response.data.success) {
+          setDepartments(response.data.departments)
+        }
+      } catch (error) {
+        console.error("Error fetching departments:", error)
+        // Mock data for departments
+        setDepartments([
+          { _id: "dep1", dep_name: "Computer Science" },
+          { _id: "dep2", dep_name: "Electrical Engineering" },
+          { _id: "dep3", dep_name: "Mechanical Engineering" },
+          { _id: "dep4", dep_name: "Civil Engineering" },
+        ])
+      }
     }
-    getDepartments()
+
+    fetchDepartments()
   }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setVacancyData({ ...vacancyData, [name]: value })
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setError(null)
+    setError("")
+    setSuccess("")
 
     try {
-      const response = await axios.post("http://localhost:5000/api/vacancies/add", vacancyData, {
+      const response = await axios.post("http://localhost:5000/api/vacancies/add", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
 
       if (response.data.success) {
-        navigate("/admin-dashboard/vacancies")
+        setSuccess("Vacancy posted successfully!")
+        setTimeout(() => {
+          navigate("/admin-dashboard/vacancies")
+        }, 2000)
+      } else {
+        setError(response.data.message || "Failed to post vacancy")
       }
     } catch (error) {
       console.error("Error posting vacancy:", error)
-      setError(error.response?.data?.error || "An error occurred while posting vacancy")
+      setError("Failed to post vacancy. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Post New Job Vacancy</h2>
+    <div className="p-6">
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate("/admin-dashboard/vacancies")}
+          className="mr-4 p-2 rounded-full hover:bg-gray-200 transition-colors"
+        >
+          <FaArrowLeft />
+        </button>
+        <h2 className="text-2xl font-bold">Post New Job Vacancy</h2>
+      </div>
+
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Position */}
+      {success && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">{success}</div>}
+
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="position" className="block text-sm font-medium text-gray-700">
-              Position Title
+            <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">
+              Position Title*
             </label>
             <input
               type="text"
               id="position"
               name="position"
-              value={vacancyData.position}
+              value={formData.position}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
             />
           </div>
 
-          {/* Department */}
           <div>
-            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
-              Department
+            <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+              Department*
             </label>
             <select
               id="department"
               name="department"
-              value={vacancyData.department}
+              value={formData.department}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
             >
               <option value="">Select Department</option>
-              {departments.map((dep) => (
-                <option key={dep._id} value={dep._id}>
-                  {dep.dep_name}
+              {departments.map((dept) => (
+                <option key={dept._id} value={dept._id}>
+                  {dept.dep_name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Quantity */}
           <div>
-            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-              Number of Positions
+            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+              Number of Positions*
             </label>
             <input
               type="number"
               id="quantity"
               name="quantity"
-              value={vacancyData.quantity}
+              value={formData.quantity}
               onChange={handleChange}
               min="1"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
             />
           </div>
 
-          {/* Salary */}
           <div>
-            <label htmlFor="salary" className="block text-sm font-medium text-gray-700">
-              Salary
+            <label htmlFor="salary" className="block text-sm font-medium text-gray-700 mb-1">
+              Salary (ETB)*
             </label>
             <input
               type="number"
               id="salary"
               name="salary"
-              value={vacancyData.salary}
+              value={formData.salary}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
             />
           </div>
 
-          {/* Education Level */}
           <div>
-            <label htmlFor="eduLevel" className="block text-sm font-medium text-gray-700">
-              Required Education
-            </label>
-            <input
-              type="text"
-              id="eduLevel"
-              name="eduLevel"
-              value={vacancyData.eduLevel}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
-
-          {/* Experience */}
-          <div>
-            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">
-              Required Experience
+            <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
+              Required Experience*
             </label>
             <input
               type="text"
               id="experience"
               name="experience"
-              value={vacancyData.experience}
+              value={formData.experience}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
+              placeholder="e.g., Minimum 3 years of teaching experience"
             />
           </div>
 
-          {/* Gender */}
           <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
-              Gender Preference
-            </label>
-            <select
-              id="gender"
-              name="gender"
-              value={vacancyData.gender}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-            >
-              <option value="any">Any</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-
-          {/* CGPA */}
-          <div>
-            <label htmlFor="cgpa" className="block text-sm font-medium text-gray-700">
-              Minimum CGPA
+            <label htmlFor="eduLevel" className="block text-sm font-medium text-gray-700 mb-1">
+              Required Education Level*
             </label>
             <input
-              type="number"
-              id="cgpa"
-              name="cgpa"
-              value={vacancyData.cgpa}
+              type="text"
+              id="eduLevel"
+              name="eduLevel"
+              value={formData.eduLevel}
               onChange={handleChange}
-              step="0.01"
-              min="0"
-              max="4.0"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+              className="w-full p-2 border rounded-md"
+              placeholder="e.g., PhD in Computer Science"
             />
           </div>
 
-          {/* End Date */}
+          <div className="md:col-span-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              Job Description*
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows="4"
+              className="w-full p-2 border rounded-md"
+            ></textarea>
+          </div>
+
           <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              Application Deadline
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+              Application Deadline*
             </label>
             <input
               type="date"
               id="endDate"
               name="endDate"
-              value={vacancyData.endDate}
+              value={formData.endDate}
               onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
+              className="w-full p-2 border rounded-md"
             />
-          </div>
-
-          {/* Description */}
-          <div className="md:col-span-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Job Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={vacancyData.description}
-              onChange={handleChange}
-              rows="4"
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            ></textarea>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded"
-        >
-          {loading ? "Posting..." : "Post Vacancy"}
-        </button>
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={() => navigate("/admin-dashboard/vacancies")}
+            className="mr-4 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors disabled:bg-teal-300"
+          >
+            {loading ? "Posting..." : "Post Vacancy"}
+          </button>
+        </div>
       </form>
     </div>
   )

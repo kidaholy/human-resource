@@ -57,9 +57,9 @@ const AdminSideBar = () => {
           </li>
           <li className="mb-2">
             <Link
-              to="/admin-dashboard/leave-management"
+              to="/admin-dashboard/leave"
               className={`flex items-center p-2 rounded-md ${
-                isActive("/leave-management") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
+                isActive("/leave") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
               }`}
             >
               <FaCalendarAlt className="mr-3" />
@@ -68,7 +68,7 @@ const AdminSideBar = () => {
           </li>
           <li className="mb-2">
             <Link
-              to="/admin-dashboard/salary"
+              to="/admin-dashboard/salary/add"
               className={`flex items-center p-2 rounded-md ${
                 isActive("/salary") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
               }`}
@@ -101,7 +101,6 @@ const AdminSideBar = () => {
               Vacancies
             </Link>
           </li>
-          {/* New Vacancy Requests Link */}
           <li className="mb-2">
             <Link
               to="/admin-dashboard/vacancy-requests"

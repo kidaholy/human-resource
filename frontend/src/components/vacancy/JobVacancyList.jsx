@@ -21,7 +21,10 @@ const JobVacancyList = () => {
         })
 
         if (response.data.success) {
-          // Mock data for demonstration
+          setVacancies(response.data.vacancies || [])
+          setFilteredVacancies(response.data.vacancies || [])
+        } else {
+          // If the API call is successful but returns no data, use mock data
           const mockData = [
             {
               _id: "vac1",
@@ -74,7 +77,57 @@ const JobVacancyList = () => {
         }
       } catch (error) {
         console.error("Error fetching vacancies:", error)
-        setError("Failed to fetch job vacancies")
+        // If the API call fails, use mock data
+        const mockData = [
+          {
+            _id: "vac1",
+            position: "Senior Lecturer",
+            department: {
+              _id: "dep1",
+              dep_name: "Computer Science",
+            },
+            quantity: 2,
+            salary: 50000,
+            experience: "Minimum 5 years of teaching experience",
+            eduLevel: "PhD in Computer Science or related field",
+            endDate: "2023-12-31",
+            status: "active",
+            createdAt: "2023-05-15",
+          },
+          {
+            _id: "vac2",
+            position: "Assistant Professor",
+            department: {
+              _id: "dep2",
+              dep_name: "Electrical Engineering",
+            },
+            quantity: 1,
+            salary: 45000,
+            experience: "Minimum 3 years of teaching experience",
+            eduLevel: "PhD in Electrical Engineering",
+            endDate: "2023-11-30",
+            status: "active",
+            createdAt: "2023-05-20",
+          },
+          {
+            _id: "vac3",
+            position: "Lab Assistant",
+            department: {
+              _id: "dep1",
+              dep_name: "Computer Science",
+            },
+            quantity: 3,
+            salary: 25000,
+            experience: "1-2 years of lab experience",
+            eduLevel: "Bachelor's degree in Computer Science",
+            endDate: "2023-10-15",
+            status: "active",
+            createdAt: "2023-06-01",
+          },
+        ]
+        setVacancies(mockData)
+        setFilteredVacancies(mockData)
+        setError("Failed to fetch job vacancies. Showing sample data.")
       } finally {
         setLoading(false)
       }
@@ -87,13 +140,15 @@ const JobVacancyList = () => {
     const value = e.target.value.toLowerCase()
     const filtered = vacancies.filter(
       (vacancy) =>
-        vacancy.position.toLowerCase().includes(value) || vacancy.department.dep_name.toLowerCase().includes(value),
+        vacancy.position.toLowerCase().includes(value) ||
+        (vacancy.department &&
+          vacancy.department.dep_name &&
+          vacancy.department.dep_name.toLowerCase().includes(value)),
     )
     setFilteredVacancies(filtered)
   }
 
   if (loading) return <div className="p-4">Loading job vacancies...</div>
-  if (error) return <div className="p-4 text-red-500">{error}</div>
 
   return (
     <div className="p-6">
@@ -120,6 +175,8 @@ const JobVacancyList = () => {
         />
       </div>
 
+      {error && <div className="p-4 mb-4 text-amber-700 bg-amber-100 rounded-md">{error}</div>}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVacancies.length > 0 ? (
           filteredVacancies.map((vacancy) => (
@@ -129,7 +186,7 @@ const JobVacancyList = () => {
             >
               <div className="bg-teal-600 text-white p-4">
                 <h3 className="text-xl font-bold">{vacancy.position}</h3>
-                <p className="text-sm">{vacancy.department.dep_name} Department</p>
+                <p className="text-sm">{vacancy.department?.dep_name || "Department"} Department</p>
               </div>
               <div className="p-4">
                 <div className="mb-4">
@@ -138,19 +195,21 @@ const JobVacancyList = () => {
                 </div>
                 <div className="mb-4">
                   <p className="text-sm text-gray-600">Salary</p>
-                  <p className="font-medium">${vacancy.salary.toLocaleString()}</p>
+                  <p className="font-medium">${vacancy.salary?.toLocaleString() || "N/A"}</p>
                 </div>
                 <div className="mb-4">
                   <p className="text-sm text-gray-600">Required Education</p>
-                  <p className="font-medium">{vacancy.eduLevel}</p>
+                  <p className="font-medium">{vacancy.eduLevel || "N/A"}</p>
                 </div>
                 <div className="mb-4">
                   <p className="text-sm text-gray-600">Application Deadline</p>
-                  <p className="font-medium">{new Date(vacancy.endDate).toLocaleDateString()}</p>
+                  <p className="font-medium">
+                    {vacancy.endDate ? new Date(vacancy.endDate).toLocaleDateString() : "N/A"}
+                  </p>
                 </div>
                 <div className="flex justify-between items-center mt-6">
                   <span className="text-xs text-gray-500">
-                    Posted on {new Date(vacancy.createdAt).toLocaleDateString()}
+                    Posted on {vacancy.createdAt ? new Date(vacancy.createdAt).toLocaleDateString() : "N/A"}
                   </span>
                   <Link
                     to={`/admin-dashboard/vacancy/${vacancy._id}`}

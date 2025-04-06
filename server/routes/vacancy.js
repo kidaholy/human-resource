@@ -11,6 +11,7 @@ import {
   processVacancyRequest,
   getPublicVacancies,
   getDepartmentHeadVacancies,
+  addVacancy,
 } from "../controllers/vacancyController.js"
 
 const router = express.Router()
@@ -24,6 +25,7 @@ router.post("/request", authMiddleware, roleMiddleware(["department_head"]), req
 router.get("/my-requests", authMiddleware, roleMiddleware(["department_head"]), getDepartmentHeadVacancies)
 
 // Admin routes
+router.post("/add", authMiddleware, roleMiddleware(["admin"]), addVacancy) // New route for adding vacancies
 router.get("/requests", authMiddleware, roleMiddleware(["admin"]), getVacancyRequests)
 router.put("/requests/:id", authMiddleware, roleMiddleware(["admin"]), processVacancyRequest)
 router.put("/:id", authMiddleware, roleMiddleware(["admin"]), updateVacancy)

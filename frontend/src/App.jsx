@@ -110,7 +110,10 @@ function App() {
             <Route path="/department-head-dashboard/department-employees" element={<DepartmentEmployeeList />}></Route>
             <Route path="/department-head-dashboard/employee/:id" element={<DepartmentEmployeeProfile />}></Route>
             <Route path="/department-head-dashboard/request-vacancy" element={<RequestVacancy />}></Route>
-            <Route path="/department-head-dashboard/my-vacancies" element={<DepartmentVacancyRequests />}></Route>
+            <Route
+              path="/department-head-dashboard/my-vacancy-requests"
+              element={<DepartmentVacancyRequests />}
+            ></Route>
           </Route>
 
           {/* Employee Routes */}

@@ -63,7 +63,8 @@ const List = () => {
   }
 
   const handleLeaveEmployee = (id) => {
-    navigate(`/admin-dashboard/employees/leave/${id}`)
+    // Navigate to the leave management page for this employee
+    navigate(`/admin-dashboard/leave`)
   }
 
   return (

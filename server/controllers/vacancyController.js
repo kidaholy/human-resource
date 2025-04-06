@@ -2,6 +2,40 @@ import JobVacancy from "../models/JobVacancy.js"
 import Department from "../models/Department.js"
 import Employee from "../models/Employee.js"
 
+// Add a new job vacancy (for admin)
+const addVacancy = async (req, res) => {
+  try {
+    const { position, department, quantity, salary, experience, eduLevel, endDate, gender, cgpa, description } =
+      req.body
+
+    const newVacancy = new JobVacancy({
+      position,
+      department,
+      quantity,
+      salary,
+      experience,
+      eduLevel,
+      endDate,
+      gender: gender || "any",
+      cgpa,
+      description,
+      requestStatus: "approved", // Auto-approved since admin is creating it
+      status: "active", // Active by default
+    })
+
+    await newVacancy.save()
+
+    return res.status(201).json({
+      success: true,
+      message: "Vacancy added successfully",
+      vacancy: newVacancy,
+    })
+  } catch (error) {
+    console.error("Error adding vacancy:", error)
+    return res.status(500).json({ success: false, error: "Server error in adding vacancy" })
+  }
+}
+
 // Request a new job vacancy (for department heads)
 const requestVacancy = async (req, res) => {
   try {
@@ -241,5 +275,6 @@ export {
   processVacancyRequest,
   getPublicVacancies,
   getDepartmentHeadVacancies,
+  addVacancy,
 }
 

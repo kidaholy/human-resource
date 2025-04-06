@@ -116,7 +116,7 @@ export const EmployeeButtons = ({ _id }) => {
       </button>
       <button
         className="px-3 py-1 bg-purple-500 text-white rounded-md hover:bg-purple-600"
-        onClick={() => navigate(`/admin-dashboard/employees/leave/${_id}`)}
+        onClick={() => navigate(`/admin-dashboard/leave`)}
       >
         Leave
       </button>
