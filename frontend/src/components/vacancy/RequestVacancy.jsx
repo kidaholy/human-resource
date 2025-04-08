@@ -13,35 +13,62 @@ const RequestVacancy = () => {
   const [error, setError] = useState("")
   const [departmentId, setDepartmentId] = useState("")
 
+  // For debugging user info
+  useEffect(() => {
+    console.log("Current user:", user);
+  }, [user]);
+
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    requirements: "",
-    responsibilities: "",
+    position: "",
+    quantity: 1,
     salary: "",
-    location: "",
-    type: "Full-time",
+    experience: "",
+    eduLevel: "Bachelor's Degree",
+    endDate: "",
+    gender: "any",
+    description: "",
     justification: "",
+    cgpa: "",
   })
 
   useEffect(() => {
     // Get department ID for the department head
     const fetchDepartmentId = async () => {
       try {
-        const response = await axios.get(`/api/employees/user/${user.id}`)
-        if (response.data && response.data.departmentId) {
-          setDepartmentId(response.data.departmentId)
+        // Make sure we have the user ID
+        const userId = user?._id || user?.id;
+        if (!userId) {
+          setError("User information is missing. Please log in again.");
+          return;
+        }
+
+        console.log("Fetching department ID for user:", userId);
+        
+        // Fixed API endpoint to get employee information
+        const response = await axios.get(`http://localhost:5000/api/employees/user/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        console.log("Employee response:", response.data);
+        
+        if (response.data?.success && response.data.employee?.department?._id) {
+          setDepartmentId(response.data.employee.department._id);
+          console.log("Department ID set:", response.data.employee.department._id);
+        } else {
+          setError("Could not find your department. Please contact an administrator.");
         }
       } catch (error) {
-        console.error("Error fetching department:", error)
-        setError("Failed to fetch your department information")
+        console.error("Error fetching department:", error);
+        setError("Failed to fetch your department information. Please try again later.");
       }
-    }
+    };
 
-    if (user && user.id) {
-      fetchDepartmentId()
+    if (user) {
+      fetchDepartmentId();
     }
-  }, [user])
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -57,26 +84,78 @@ const RequestVacancy = () => {
     setError("")
 
     try {
-      // Create vacancy request
-      const requestData = {
-        ...formData,
-        departmentId,
-        status: "pending", // All new requests start as pending
-        requestedBy: user.id,
+      const userId = user?._id || user?.id;
+      if (!userId) {
+        setError("User information is missing. Please log in again.");
+        setLoading(false);
+        return;
       }
 
-      const response = await axios.post("/api/vacancies/request", requestData)
+      if (!departmentId) {
+        setError("Department information is missing. Please refresh the page or contact an administrator.");
+        setLoading(false);
+        return;
+      }
 
-      setSuccess(true)
-      setLoading(false)
+      // Format the data to match what the backend expects
+      const requestData = {
+        position: formData.position,
+        department: departmentId,
+        quantity: parseInt(formData.quantity),
+        salary: parseInt(formData.salary),
+        experience: formData.experience,
+        eduLevel: formData.eduLevel,
+        endDate: formData.endDate,
+        gender: formData.gender,
+        description: formData.description,
+        justification: formData.justification,
+        cgpa: formData.cgpa ? parseFloat(formData.cgpa) : undefined,
+        requestedBy: userId
+      }
+
+      // Check if all required fields are present
+      if (!requestData.position || !requestData.department || !requestData.quantity || 
+          !requestData.salary || !requestData.experience || !requestData.eduLevel || 
+          !requestData.endDate || !requestData.description || !requestData.justification) {
+        setError("Please fill in all required fields");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Submitting vacancy request:", requestData);
+      
+      // Get the token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError("Authentication token is missing. Please log in again.");
+        setLoading(false);
+        return;
+      }
+      
+      // Correct API endpoint
+      const response = await axios.post("http://localhost:5000/api/vacancies/request", requestData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log("Response:", response.data);
+      setSuccess(true);
+      setLoading(false);
 
       // Redirect to vacancy requests list after 2 seconds
       setTimeout(() => {
-        navigate("/department-head-dashboard/my-vacancy-requests")
-      }, 2000)
+        navigate("/department-head-dashboard/my-vacancy-requests");
+      }, 2000);
     } catch (err) {
-      setLoading(false)
-      setError(err.response?.data?.message || "Failed to submit vacancy request")
+      setLoading(false);
+      console.error("Vacancy submission error:", err);
+      setError(
+        err.response?.data?.error || 
+        err.response?.data?.message || 
+        "Failed to submit vacancy request. Please check your connection and try again."
+      );
     }
   }
 
@@ -106,8 +185,8 @@ const RequestVacancy = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Position Title*</label>
               <input
                 type="text"
-                name="title"
-                value={formData.title}
+                name="position"
+                value={formData.position}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
@@ -116,46 +195,103 @@ const RequestVacancy = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Salary Range*</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Salary (Annual)*</label>
               <input
-                type="text"
+                type="number"
                 name="salary"
                 value={formData.salary}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-                placeholder="e.g., $60,000 - $80,000"
+                placeholder="e.g., 80000"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location*</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-                placeholder="e.g., New York, NY (Remote/Hybrid/On-site)"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type*</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Experience Level*</label>
               <select
-                name="type"
-                value={formData.type}
+                name="experience"
+                value={formData.experience}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
               >
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Contract">Contract</option>
-                <option value="Temporary">Temporary</option>
-                <option value="Internship">Internship</option>
+                <option value="">Select Experience Level</option>
+                <option value="Entry Level">Entry Level</option>
+                <option value="Mid Level">Mid Level</option>
+                <option value="Senior Level">Senior Level</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Education Level*</label>
+              <select
+                name="eduLevel"
+                value={formData.eduLevel}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option value="High School">High School</option>
+                <option value="Associate Degree">Associate Degree</option>
+                <option value="Bachelor's Degree">Bachelor's Degree</option>
+                <option value="Master's Degree">Master's Degree</option>
+                <option value="PhD">PhD</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Number of Positions*</label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+                min="1"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Application Deadline*</label>
+              <input
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gender Preference</label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option value="any">Any</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Minimum CGPA (Optional)</label>
+              <input
+                type="number"
+                name="cgpa"
+                value={formData.cgpa || ""}
+                onChange={handleChange}
+                step="0.1"
+                min="0"
+                max="4"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                placeholder="e.g., 3.0"
+              />
             </div>
           </div>
 
@@ -166,35 +302,9 @@ const RequestVacancy = () => {
               value={formData.description}
               onChange={handleChange}
               required
-              rows={3}
+              rows={5}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Provide a brief overview of the position..."
-            ></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Requirements*</label>
-            <textarea
-              name="requirements"
-              value={formData.requirements}
-              onChange={handleChange}
-              required
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-              placeholder="List the qualifications, skills, and experience required..."
-            ></textarea>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Responsibilities*</label>
-            <textarea
-              name="responsibilities"
-              value={formData.responsibilities}
-              onChange={handleChange}
-              required
-              rows={3}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-              placeholder="Describe the key duties and responsibilities..."
+              placeholder="Provide a detailed description of the position, including responsibilities, requirements, and any other relevant information..."
             ></textarea>
           </div>
 
