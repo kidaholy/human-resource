@@ -88,6 +88,11 @@ const AdminSideBar = () => {
               My Profile
             </Link>
           </li>
+
+          {/* Vacancy Management Section */}
+          <li className="mt-6 mb-2">
+            <h3 className="text-lg font-semibold text-gray-300 px-2">Vacancy Management</h3>
+          </li>
           <li className="mb-2">
             <Link
               to="/admin-dashboard/vacancies"
@@ -98,7 +103,7 @@ const AdminSideBar = () => {
               }`}
             >
               <FaBriefcase className="mr-3" />
-              Vacancies
+              Active Vacancies
             </Link>
           </li>
           <li className="mb-2">
@@ -112,6 +117,11 @@ const AdminSideBar = () => {
               Vacancy Requests
             </Link>
           </li>
+
+          {/* Applicant Management Section */}
+          <li className="mt-6 mb-2">
+            <h3 className="text-lg font-semibold text-gray-300 px-2">Applicant Management</h3>
+          </li>
           <li className="mb-2">
             <Link
               to="/admin-dashboard/applicants"
@@ -120,7 +130,7 @@ const AdminSideBar = () => {
               }`}
             >
               <FaUserGraduate className="mr-3" />
-              Applicants
+              All Applicants
             </Link>
           </li>
         </ul>

@@ -65,6 +65,8 @@ const Sidebar = () => {
     { path: "/admin-dashboard/leave", icon: <FaCalendarAlt />, label: "Leave" },
     { path: "/admin-dashboard/salary/add", icon: <FaMoneyBillWave />, label: "Salary" },
     { path: "/admin-dashboard/vacancies", icon: <FaBriefcase />, label: "Vacancies" },
+    { path: "/admin-dashboard/vacancy-requests", icon: <FaInbox />, label: "Vacancy Requests" },
+    { path: "/admin-dashboard/applicants", icon: <FaFileAlt />, label: "Applicants" },
     { path: "/admin-dashboard/setting", icon: <FaCogs />, label: "Settings" },
   ]
 
