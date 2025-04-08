@@ -26,9 +26,9 @@ const DepartmentHeadSideBar = () => {
           </li>
           <li className="mb-2">
             <Link
-              to="/department-head-dashboard/employees"
+              to="/department-head-dashboard/department-employees"
               className={`flex items-center p-2 rounded-md ${
-                isActive("/employees") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
+                isActive("/department-employees") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
               }`}
             >
               <FaUsers className="mr-3" />
@@ -37,9 +37,9 @@ const DepartmentHeadSideBar = () => {
           </li>
           <li className="mb-2">
             <Link
-              to="/department-head-dashboard/leave-management"
+              to="/department-head-dashboard/leave-requests"
               className={`flex items-center p-2 rounded-md ${
-                isActive("/leave-management") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
+                isActive("/leave-requests") ? "bg-teal-600 text-white" : "hover:bg-gray-700"
               }`}
             >
               <FaCalendarAlt className="mr-3" />

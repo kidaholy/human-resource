@@ -75,6 +75,8 @@ const Sidebar = () => {
     { path: "/department-head-dashboard/request-leave", icon: <FaCalendarAlt />, label: "Request Leave" },
     { path: "/department-head-dashboard/leave-history", icon: <FaFileAlt />, label: "Leave History" },
     { path: "/department-head-dashboard/department-employees", icon: <FaUsers />, label: "Department Employees" },
+    { path: "/department-head-dashboard/my-vacancy-requests", icon: <FaBriefcase />, label: "My Vacancy Requests" },
+    { path: "/department-head-dashboard/request-vacancy", icon: <FaBriefcase />, label: "Request New Vacancy" },
   ]
 
   const employeeLinks = [
