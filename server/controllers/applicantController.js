@@ -91,40 +91,71 @@ const applyForJob = async (req, res) => {
       })
     }
     
-    // Check if user already applied for this vacancy
-    const existingApplication = await Applicant.findOne({
-      userId,
-      vacancy: req.body.vacancyId
-    })
+    // Check if applicant already exists
+    let applicant = await Applicant.findOne({ user: userId });
     
-    if (existingApplication) {
+    if (!applicant) {
+      // Create new applicant if doesn't exist
+      applicant = new Applicant({
+        user: userId,
+        name: req.body.fullName,
+        email: req.body.email,
+        phone: req.body.phone,
+        education: [],
+        experience: [],
+        skills: [],
+        applications: []
+      });
+    }
+    
+    // Check if user already applied for this vacancy
+    const alreadyApplied = applicant.applications.some(app => 
+      app.vacancy.toString() === req.body.vacancyId
+    );
+    
+    if (alreadyApplied) {
       return res.status(400).json({ 
         success: false, 
         error: "You have already applied for this position" 
-      })
+      });
     }
     
-    // Create new application
-    const newApplication = new Applicant({
-      userId,
-      vacancy: req.body.vacancyId,
-      fullName: req.body.fullName,
-      email: req.body.email,
-      phone: req.body.phone,
-      dob: req.body.dob,
-      gender: req.body.gender,
-      education: {
-        degree: req.body.degree,
-        institution: req.body.institution,
-        graduationYear: req.body.graduationYear,
-        cgpa: req.body.cgpa,
-      },
-      experience: req.body.experience,
-      resume: req.file.filename,
-      status: "pending",
-    })
+    // Create education object if provided
+    const education = req.body.degree ? {
+      degree: req.body.degree,
+      institution: req.body.institution,
+      fieldOfStudy: req.body.fieldOfStudy,
+      graduationYear: req.body.graduationYear
+    } : null;
     
-    await newApplication.save()
+    if (education && !applicant.education.some(e => e.degree === education.degree)) {
+      applicant.education.push(education);
+    }
+    
+    // Add experience if provided
+    if (req.body.experience) {
+      const newExperience = Array.isArray(req.body.experience) 
+        ? req.body.experience 
+        : [req.body.experience];
+        
+      // Add only new experiences
+      for (const exp of newExperience) {
+        if (!applicant.experience.some(e => e.company === exp.company && e.title === exp.title)) {
+          applicant.experience.push(exp);
+        }
+      }
+    }
+    
+    // Add new application
+    applicant.applications.push({
+      vacancy: req.body.vacancyId,
+      status: "pending",
+      resume: req.file.filename,
+      coverLetter: req.body.coverLetter,
+      applicationDate: new Date()
+    });
+    
+    await applicant.save();
     
     return res.status(201).json({
       success: true,
@@ -143,117 +174,232 @@ const applyForJob = async (req, res) => {
 // Get all applications (admin only)
 const getAllApplications = async (req, res) => {
   try {
-    const applications = await Applicant.find()
-      .populate("userId", "name email")
+    const applicants = await Applicant.find()
+      .populate("user", "name email")
       .populate({
-        path: "vacancy",
+        path: "applications.vacancy",
         populate: { path: "department", select: "dep_name" }
       })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
+    
+    // Format the response to match what the frontend expects
+    const formattedApplications = applicants.flatMap(applicant => 
+      applicant.applications.map(app => ({
+        _id: app._id,
+        applicantId: applicant._id,
+        name: applicant.name || "Unknown",
+        fullName: applicant.name || "Unknown",
+        email: applicant.email || "No email provided",
+        phone: applicant.phone || "No phone provided",
+        status: app.status || "pending",
+        applicationDate: app.applicationDate || app.createdAt || new Date(),
+        resume: app.resume,
+        feedback: app.feedback || "",
+        vacancy: app.vacancy || {},
+        education: applicant.education.length > 0 ? applicant.education[0] : {
+          degree: "N/A",
+          institution: "N/A",
+          fieldOfStudy: "N/A",
+          graduationYear: "N/A"
+        },
+        experience: applicant.experience.length > 0 ? applicant.experience[0] : null,
+        user: {
+          _id: applicant.user?._id,
+          name: applicant.user?.name || applicant.name || "Unknown"
+        }
+      }))
+    );
     
     return res.status(200).json({
       success: true,
-      applicants: applications
-    })
+      applicants: formattedApplications
+    });
   } catch (error) {
-    console.error("Error fetching applications:", error)
+    console.error("Error fetching applications:", error);
     return res.status(500).json({ 
       success: false, 
       error: "Server error in fetching applications" 
-    })
+    });
   }
 }
 
 // Get application by ID
 const getApplicationById = async (req, res) => {
   try {
-    const application = await Applicant.findById(req.params.id)
-      .populate("userId", "name email")
+    const applicationId = req.params.id;
+    
+    // Find the applicant that contains the application with the given ID
+    const applicant = await Applicant.findOne({ "applications._id": applicationId })
+      .populate("user", "name email")
       .populate({
-        path: "vacancy",
+        path: "applications.vacancy",
         populate: { path: "department", select: "dep_name" }
-      })
+      });
+    
+    if (!applicant) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Application not found" 
+      });
+    }
+    
+    // Find the specific application
+    const application = applicant.applications.find(app => 
+      app._id.toString() === applicationId
+    );
     
     if (!application) {
       return res.status(404).json({ 
         success: false, 
         error: "Application not found" 
-      })
+      });
     }
+    
+    // Format the response
+    const formattedApplication = {
+      _id: application._id,
+      applicantId: applicant._id,
+      name: applicant.name || "Unknown",
+      fullName: applicant.name || "Unknown",
+      email: applicant.email || "No email provided",
+      phone: applicant.phone || "No phone provided",
+      status: application.status || "pending",
+      applicationDate: application.applicationDate || application.createdAt || new Date(),
+      resume: application.resume,
+      feedback: application.feedback || "",
+      vacancy: application.vacancy || {},
+      education: applicant.education.length > 0 ? applicant.education[0] : {
+        degree: "N/A",
+        institution: "N/A",
+        fieldOfStudy: "N/A",
+        graduationYear: "N/A"
+      },
+      experience: applicant.experience.length > 0 ? applicant.experience[0] : null,
+      user: {
+        _id: applicant.user?._id,
+        name: applicant.user?.name || applicant.name || "Unknown"
+      }
+    };
     
     return res.status(200).json({
       success: true,
-      applicant: application
-    })
+      applicant: formattedApplication
+    });
   } catch (error) {
-    console.error("Error fetching application:", error)
+    console.error("Error fetching application:", error);
     return res.status(500).json({ 
       success: false, 
       error: "Server error in fetching application" 
-    })
+    });
   }
 }
 
 // Get applications for a specific user
 const getUserApplications = async (req, res) => {
   try {
-    const userId = req.user._id
+    const userId = req.user._id;
     
-    const applications = await Applicant.find({ userId })
+    const applicant = await Applicant.findOne({ user: userId })
       .populate({
-        path: "vacancy",
+        path: "applications.vacancy",
         populate: { path: "department", select: "dep_name" }
-      })
-      .sort({ createdAt: -1 })
+      });
+    
+    if (!applicant) {
+      return res.status(200).json({
+        success: true,
+        applications: []
+      });
+    }
+    
+    // Format the response
+    const formattedApplications = applicant.applications.map(app => ({
+      _id: app._id,
+      applicantId: applicant._id,
+      name: applicant.name || "Unknown",
+      fullName: applicant.name || "Unknown",
+      email: applicant.email || "No email provided",
+      phone: applicant.phone || "No phone provided",
+      status: app.status || "pending",
+      applicationDate: app.applicationDate || app.createdAt || new Date(),
+      resume: app.resume,
+      feedback: app.feedback || "",
+      vacancy: app.vacancy || {},
+      education: applicant.education.length > 0 ? applicant.education[0] : {
+        degree: "N/A",
+        institution: "N/A",
+        fieldOfStudy: "N/A",
+        graduationYear: "N/A"
+      },
+      experience: applicant.experience.length > 0 ? applicant.experience[0] : null,
+      user: {
+        _id: applicant.user || userId,
+        name: applicant.name || "Unknown"
+      }
+    }));
     
     return res.status(200).json({
       success: true,
-      applications
-    })
+      applications: formattedApplications
+    });
   } catch (error) {
-    console.error("Error fetching user applications:", error)
+    console.error("Error fetching user applications:", error);
     return res.status(500).json({ 
       success: false, 
       error: "Server error in fetching applications" 
-    })
+    });
   }
 }
 
 // Update application status
 const updateApplicationStatus = async (req, res) => {
   try {
-    const { id } = req.params
-    const { status, feedback } = req.body
+    const { id } = req.params;
+    const { status, feedback } = req.body;
     
-    const application = await Applicant.findById(id)
-    if (!application) {
+    // Find the applicant containing the application with the given ID
+    const applicant = await Applicant.findOne({ "applications._id": id });
+    
+    if (!applicant) {
       return res.status(404).json({ 
         success: false, 
         error: "Application not found" 
-      })
+      });
+    }
+    
+    // Find and update the specific application
+    const applicationIndex = applicant.applications.findIndex(app => 
+      app._id.toString() === id
+    );
+    
+    if (applicationIndex === -1) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Application not found" 
+      });
     }
     
     // Update status and feedback
-    application.status = status
-    if (feedback) {
-      application.feedback = feedback
-    }
-    application.updatedAt = Date.now()
+    applicant.applications[applicationIndex].status = status;
     
-    await application.save()
+    if (feedback) {
+      applicant.applications[applicationIndex].feedback = feedback;
+    }
+    
+    await applicant.save();
     
     // TODO: Send notification to applicant about status change
     
     return res.status(200).json({
       success: true,
       message: "Application status updated successfully"
-    })
+    });
   } catch (error) {
-    console.error("Error updating application status:", error)
+    console.error("Error updating application status:", error);
     return res.status(500).json({ 
       success: false, 
       error: "Server error in updating application status" 
-    })
+    });
   }
 }
 
@@ -309,6 +455,41 @@ const registerApplicant = async (req, res) => {
   }
 }
 
+// Delete application
+const deleteApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the applicant containing the application with the given ID
+    const applicant = await Applicant.findOne({ "applications._id": id });
+    
+    if (!applicant) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Application not found" 
+      });
+    }
+    
+    // Remove the application from the applications array
+    applicant.applications = applicant.applications.filter(
+      app => app._id.toString() !== id
+    );
+    
+    await applicant.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: "Application deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting application:", error);
+    return res.status(500).json({ 
+      success: false, 
+      error: "Server error in deleting application" 
+    });
+  }
+}
+
 export {
   applyForJob,
   upload,
@@ -316,5 +497,6 @@ export {
   getApplicationById,
   getUserApplications,
   updateApplicationStatus,
-  registerApplicant
+  registerApplicant,
+  deleteApplication
 }
