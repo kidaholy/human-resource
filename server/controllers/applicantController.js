@@ -240,8 +240,23 @@ const getAllApplications = async (req, res) => {
         resume: app.resume,
         feedback: app.feedback,
         vacancy: app.vacancy,
-        education: applicant.education,
-        experience: applicant.experience,
+        education: applicant.education && applicant.education.length > 0 
+          ? applicant.education[0] 
+          : {
+              degree: "Not specified",
+              institution: "Not specified",
+              fieldOfStudy: "Not specified",
+              graduationYear: "Not specified",
+              cgpa: "Not specified"
+            },
+        experience: applicant.experience && applicant.experience.length > 0 
+          ? applicant.experience[0] 
+          : {
+              position: "Not specified",
+              company: "Not specified",
+              duration: "Not specified",
+              description: "Not specified"
+            },
         user: {
           _id: applicant.user?._id,
           name: applicant.user?.name,
