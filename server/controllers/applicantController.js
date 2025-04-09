@@ -227,6 +227,7 @@ const getAllApplications = async (req, res) => {
 const getApplicationById = async (req, res) => {
   try {
     const applicationId = req.params.id;
+    console.log("Fetching application with ID:", applicationId);
     
     // Find the applicant that contains the application with the given ID
     const applicant = await Applicant.findOne({ "applications._id": applicationId })
@@ -237,11 +238,19 @@ const getApplicationById = async (req, res) => {
       });
     
     if (!applicant) {
+      console.error("Application not found with ID:", applicationId);
       return res.status(404).json({ 
         success: false, 
         error: "Application not found" 
       });
     }
+    
+    console.log("Found applicant:", {
+      _id: applicant._id,
+      name: applicant.name,
+      email: applicant.email,
+      applications: applicant.applications.map(app => ({ _id: app._id, status: app.status }))
+    });
     
     // Find the specific application
     const application = applicant.applications.find(app => 
@@ -249,6 +258,7 @@ const getApplicationById = async (req, res) => {
     );
     
     if (!application) {
+      console.error("Application not found in applicant's applications");
       return res.status(404).json({ 
         success: false, 
         error: "Application not found" 
@@ -263,23 +273,27 @@ const getApplicationById = async (req, res) => {
       fullName: applicant.name || "Unknown",
       email: applicant.email || "No email provided",
       phone: applicant.phone || "No phone provided",
+      dob: applicant.dob || null,
+      gender: applicant.gender || "",
       status: application.status || "pending",
       applicationDate: application.applicationDate || application.createdAt || new Date(),
-      resume: application.resume,
+      resume: application.resume || "",
       feedback: application.feedback || "",
       vacancy: application.vacancy || {},
-      education: applicant.education.length > 0 ? applicant.education[0] : {
-        degree: "N/A",
-        institution: "N/A",
-        fieldOfStudy: "N/A",
-        graduationYear: "N/A"
+      education: applicant.education && applicant.education.length > 0 ? applicant.education[0] : {
+        degree: "",
+        institution: "",
+        graduationYear: "",
+        cgpa: ""
       },
-      experience: applicant.experience.length > 0 ? applicant.experience[0] : null,
+      experience: applicant.experience || "",
       user: {
-        _id: applicant.user?._id,
+        _id: applicant.user?._id || "",
         name: applicant.user?.name || applicant.name || "Unknown"
       }
     };
+    
+    console.log("Formatted application:", formattedApplication);
     
     return res.status(200).json({
       success: true,
@@ -490,6 +504,95 @@ const deleteApplication = async (req, res) => {
   }
 }
 
+const updateApplication = async (req, res) => {
+  try {
+    console.log("Update Application Request:", req.params, req.body);
+    
+    const { id } = req.params;
+    const { fullName, email, phone, dob, gender, education, experience, status } = req.body;
+
+    // Find the applicant containing the application with this ID
+    const applicant = await Applicant.findOne({ "applications._id": id });
+    
+    if (!applicant) {
+      console.error("Application not found with ID:", id);
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+    
+    // Find the application index
+    const applicationIndex = applicant.applications.findIndex(
+      app => app._id.toString() === id
+    );
+    
+    if (applicationIndex === -1) {
+      console.error("Application not found in applicant:", applicant);
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    // Update base applicant data
+    applicant.name = fullName;
+    applicant.email = email;
+    applicant.phone = phone;
+    
+    // Update application status
+    applicant.applications[applicationIndex].status = status;
+    
+    // Handle education - ensure it exists
+    if (!applicant.education || !Array.isArray(applicant.education) || applicant.education.length === 0) {
+      applicant.education = [{}];
+    }
+    
+    // Update education fields
+    applicant.education[0] = {
+      ...applicant.education[0],
+      degree: education.degree || "",
+      institution: education.institution || "",
+      graduationYear: education.graduationYear || "",
+      cgpa: education.cgpa || ""
+    };
+    
+    // Update other fields if provided
+    if (dob) applicant.dob = dob;
+    if (gender) applicant.gender = gender;
+    if (experience) applicant.experience = experience || "";
+
+    // Save the updated applicant
+    await applicant.save();
+    
+    // Build response object in the format the frontend expects
+    const updatedApplication = {
+      _id: applicant.applications[applicationIndex]._id,
+      applicantId: applicant._id,
+      fullName: applicant.name,
+      name: applicant.name,
+      email: applicant.email,
+      phone: applicant.phone,
+      dob: applicant.dob,
+      gender: applicant.gender,
+      status: applicant.applications[applicationIndex].status,
+      education: applicant.education[0] || {},
+      experience: applicant.experience || "",
+      resume: applicant.applications[applicationIndex].resume || "",
+      feedback: applicant.applications[applicationIndex].feedback || "",
+      applicationDate: applicant.applications[applicationIndex].applicationDate || new Date(),
+      vacancy: applicant.applications[applicationIndex].vacancy || {}
+    };
+    
+    console.log("Updated Application:", updatedApplication);
+    
+    res.status(200).json({ 
+      success: true, 
+      message: "Application updated successfully", 
+      applicant: updatedApplication 
+    });
+    
+  } catch (error) {
+    console.error("Error updating application:", error);
+    res.status(500).json({ success: false, message: error.message || "Server error" });
+  }
+};
+
+// Export all controller functions
 export {
   applyForJob,
   upload,
@@ -498,5 +601,6 @@ export {
   getUserApplications,
   updateApplicationStatus,
   registerApplicant,
-  deleteApplication
+  deleteApplication,
+  updateApplication
 }

@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { Link } from "react-router-dom"
-import { FaPlus, FaSearch } from "react-icons/fa"
+import { FaPlus, FaSearch, FaCheckCircle, FaTimesCircle } from "react-icons/fa"
+import { useAuth } from "../../context/authContext"
 
 const JobVacancyList = () => {
+  const { user } = useAuth()
   const [vacancies, setVacancies] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -14,120 +16,49 @@ const JobVacancyList = () => {
   useEffect(() => {
     const fetchVacancies = async () => {
       try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+          setError("Authentication token is missing. Please log in again.")
+          setLoading(false)
+          return
+        }
+
         const response = await axios.get("http://localhost:5000/api/vacancies", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         })
 
-        if (response.data.success) {
-          setVacancies(response.data.vacancies || [])
-          setFilteredVacancies(response.data.vacancies || [])
+        if (response.data.success && response.data.vacancies) {
+          // Filter vacancies to include approved, rejected, or those directly added by admin
+          const relevantVacancies = response.data.vacancies.filter(vacancy => {
+            // Include if:
+            // 1. It has requestStatus "approved" OR
+            // 2. It has requestStatus "rejected" OR
+            // 3. It doesn't have a requestStatus (meaning it was directly posted by admin)
+            return (
+              vacancy.requestStatus === "approved" || 
+              vacancy.requestStatus === "rejected" ||
+              !vacancy.requestStatus ||
+              vacancy.status === "active"
+            )
+          })
+
+          console.log("All vacancies:", response.data.vacancies)
+          console.log("Filtered vacancies:", relevantVacancies)
+
+          setVacancies(relevantVacancies)
+          setFilteredVacancies(relevantVacancies)
         } else {
-          // If the API call is successful but returns no data, use mock data
-          const mockData = [
-            {
-              _id: "vac1",
-              position: "Senior Lecturer",
-              department: {
-                _id: "dep1",
-                dep_name: "Computer Science",
-              },
-              quantity: 2,
-              salary: 50000,
-              experience: "Minimum 5 years of teaching experience",
-              eduLevel: "PhD in Computer Science or related field",
-              endDate: "2023-12-31",
-              status: "active",
-              createdAt: "2023-05-15",
-            },
-            {
-              _id: "vac2",
-              position: "Assistant Professor",
-              department: {
-                _id: "dep2",
-                dep_name: "Electrical Engineering",
-              },
-              quantity: 1,
-              salary: 45000,
-              experience: "Minimum 3 years of teaching experience",
-              eduLevel: "PhD in Electrical Engineering",
-              endDate: "2023-11-30",
-              status: "active",
-              createdAt: "2023-05-20",
-            },
-            {
-              _id: "vac3",
-              position: "Lab Assistant",
-              department: {
-                _id: "dep1",
-                dep_name: "Computer Science",
-              },
-              quantity: 3,
-              salary: 25000,
-              experience: "1-2 years of lab experience",
-              eduLevel: "Bachelor's degree in Computer Science",
-              endDate: "2023-10-15",
-              status: "active",
-              createdAt: "2023-06-01",
-            },
-          ]
-          setVacancies(mockData)
-          setFilteredVacancies(mockData)
+          setVacancies([])
+          setFilteredVacancies([])
+          setError("No vacancies found")
         }
       } catch (error) {
         console.error("Error fetching vacancies:", error)
-        // If the API call fails, use mock data
-        const mockData = [
-          {
-            _id: "vac1",
-            position: "Senior Lecturer",
-            department: {
-              _id: "dep1",
-              dep_name: "Computer Science",
-            },
-            quantity: 2,
-            salary: 50000,
-            experience: "Minimum 5 years of teaching experience",
-            eduLevel: "PhD in Computer Science or related field",
-            endDate: "2023-12-31",
-            status: "active",
-            createdAt: "2023-05-15",
-          },
-          {
-            _id: "vac2",
-            position: "Assistant Professor",
-            department: {
-              _id: "dep2",
-              dep_name: "Electrical Engineering",
-            },
-            quantity: 1,
-            salary: 45000,
-            experience: "Minimum 3 years of teaching experience",
-            eduLevel: "PhD in Electrical Engineering",
-            endDate: "2023-11-30",
-            status: "active",
-            createdAt: "2023-05-20",
-          },
-          {
-            _id: "vac3",
-            position: "Lab Assistant",
-            department: {
-              _id: "dep1",
-              dep_name: "Computer Science",
-            },
-            quantity: 3,
-            salary: 25000,
-            experience: "1-2 years of lab experience",
-            eduLevel: "Bachelor's degree in Computer Science",
-            endDate: "2023-10-15",
-            status: "active",
-            createdAt: "2023-06-01",
-          },
-        ]
-        setVacancies(mockData)
-        setFilteredVacancies(mockData)
-        setError("Failed to fetch job vacancies. Showing sample data.")
+        setError("Failed to fetch job vacancies. Please try again later.")
+        setVacancies([])
+        setFilteredVacancies([])
       } finally {
         setLoading(false)
       }
@@ -148,7 +79,29 @@ const JobVacancyList = () => {
     setFilteredVacancies(filtered)
   }
 
-  if (loading) return <div className="p-4">Loading job vacancies...</div>
+  // Get the appropriate status badge for each vacancy
+  const getStatusBadge = (vacancy) => {
+    if (vacancy.requestStatus === "approved") {
+      return (
+        <div className="flex items-center bg-green-500 text-white text-xs px-2 py-1 rounded">
+          <FaCheckCircle className="mr-1" /> Approved
+        </div>
+      )
+    } else if (vacancy.requestStatus === "rejected") {
+      return (
+        <div className="flex items-center bg-red-500 text-white text-xs px-2 py-1 rounded">
+          <FaTimesCircle className="mr-1" /> Rejected
+        </div>
+      )
+    }
+    return null
+  }
+
+  if (loading) return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+    </div>
+  )
 
   return (
     <div className="p-6">
@@ -177,16 +130,31 @@ const JobVacancyList = () => {
 
       {error && <div className="p-4 mb-4 text-amber-700 bg-amber-100 rounded-md">{error}</div>}
 
+      {filteredVacancies.length === 0 && !error ? (
+        <div className="p-4 mb-4 text-gray-700 bg-gray-100 rounded-md">
+          No vacancies found. Click "Post New Vacancy" to create one.
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVacancies.length > 0 ? (
           filteredVacancies.map((vacancy) => (
             <div
               key={vacancy._id}
-              className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
+              className={`bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow ${
+                vacancy.requestStatus === "rejected" ? "opacity-75" : ""
+              }`}
             >
-              <div className="bg-teal-600 text-white p-4">
-                <h3 className="text-xl font-bold">{vacancy.position}</h3>
-                <p className="text-sm">{vacancy.department?.dep_name || "Department"} Department</p>
+              <div className={`text-white p-4 ${
+                vacancy.requestStatus === "rejected" ? "bg-gray-600" : "bg-teal-600"
+              }`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold">{vacancy.position}</h3>
+                    <p className="text-sm">{vacancy.department?.dep_name || "Department"} Department</p>
+                  </div>
+                  {getStatusBadge(vacancy)}
+                </div>
               </div>
               <div className="p-4">
                 <div className="mb-4">
@@ -207,6 +175,12 @@ const JobVacancyList = () => {
                     {vacancy.endDate ? new Date(vacancy.endDate).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
+                {vacancy.requestStatus === "rejected" && vacancy.feedback && (
+                  <div className="mb-4 p-2 bg-red-50 text-red-800 rounded-md">
+                    <p className="text-sm font-semibold">Rejection Reason:</p>
+                    <p className="text-sm">{vacancy.feedback}</p>
+                  </div>
+                )}
                 <div className="flex justify-between items-center mt-6">
                   <span className="text-xs text-gray-500">
                     Posted on {vacancy.createdAt ? new Date(vacancy.createdAt).toLocaleDateString() : "N/A"}

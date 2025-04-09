@@ -11,68 +11,102 @@ const DepartmentVacancyRequests = () => {
   const [vacancyRequests, setVacancyRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [departmentId, setDepartmentId] = useState("")
+  const [debug, setDebug] = useState({})
 
   useEffect(() => {
-    // Get department ID for the department head
-    const fetchDepartmentId = async () => {
+    const fetchVacancyRequests = async () => {
       try {
-        const response = await axios.get(`/api/employees/user/${user.id}`)
-        if (response.data && response.data.departmentId) {
-          setDepartmentId(response.data.departmentId)
-          fetchVacancyRequests(response.data.departmentId)
+        // Make sure we have the auth token
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError("Authentication token is missing. Please log in again.");
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching department:", error)
-        setError("Failed to fetch your department information")
-        setLoading(false)
+
+        console.log("Fetching vacancy requests for user:", user?._id || user?.id);
+
+        // Use the correct API endpoint for department head's vacancy requests
+        const response = await axios.get("http://localhost:5000/api/vacancies/my-requests", {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        console.log("Vacancy requests response:", response.data);
+        setDebug(response.data); // Store for debugging
+
+        // Check if the response has the expected structure
+        if (response.data.success && response.data.vacancies && Array.isArray(response.data.vacancies)) {
+          // Map the vacancies to ensure all fields are properly accessed
+          const formattedVacancies = response.data.vacancies.map(vacancy => ({
+            _id: vacancy._id,
+            position: vacancy.position || "Untitled Position",
+            department: vacancy.department,
+            departmentName: vacancy.department?.dep_name || "Unknown Department",
+            createdAt: vacancy.createdAt,
+            status: vacancy.status || "draft",
+            requestStatus: vacancy.requestStatus || "pending",
+            salary: vacancy.salary || 0,
+            experience: vacancy.experience || "Not specified",
+            eduLevel: vacancy.eduLevel || "Not specified",
+            endDate: vacancy.endDate || null,
+            description: vacancy.description || "",
+            justification: vacancy.justification || "",
+            feedback: vacancy.feedback || ""
+          }));
+          
+          setVacancyRequests(formattedVacancies);
+        } else {
+          console.error("Invalid response format:", response.data);
+          setVacancyRequests([]);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching vacancy requests:", err);
+        setError("Failed to fetch vacancy requests. Please try again later.");
+        setLoading(false);
       }
-    }
+    };
 
-    if (user && user.id) {
-      fetchDepartmentId()
+    if (user) {
+      fetchVacancyRequests();
     }
-  }, [user])
+  }, [user]);
 
-  const fetchVacancyRequests = async (deptId) => {
-    try {
-      const response = await axios.get(`/api/vacancies/department/${deptId}/requests`)
-      setVacancyRequests(response.data)
-      setLoading(false)
-    } catch (err) {
-      setError("Failed to fetch vacancy requests")
-      setLoading(false)
-    }
-  }
-
-  const getStatusBadge = (status) => {
-    switch (status) {
+  // Helper to determine status display
+  const getStatusBadge = (status, requestStatus) => {
+    // Priority to requestStatus since it's the overall status of the vacancy request
+    const displayStatus = requestStatus || status;
+    
+    switch (displayStatus) {
       case "approved":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
             <FaCheckCircle className="mr-1" /> Approved
           </span>
-        )
+        );
       case "rejected":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
             <FaTimesCircle className="mr-1" /> Rejected
           </span>
-        )
+        );
       case "pending":
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
             <FaHourglassHalf className="mr-1" /> Pending
           </span>
-        )
+        );
     }
-  }
+  };
 
   const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" }
-    return new Date(dateString).toLocaleDateString(undefined, options)
-  }
+    if (!dateString) return "N/A";
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -87,6 +121,16 @@ const DepartmentVacancyRequests = () => {
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
+      
+      {/* DEBUG INFO - Remove in production */}
+      {process.env.NODE_ENV !== 'production' && (
+        <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded-md text-xs">
+          <details>
+            <summary>Debug Information</summary>
+            <pre>{JSON.stringify(debug, null, 2)}</pre>
+          </details>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -117,6 +161,12 @@ const DepartmentVacancyRequests = () => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Department
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Date Requested
                 </th>
                 <th
@@ -129,7 +179,7 @@ const DepartmentVacancyRequests = () => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Type
+                  Requirements
                 </th>
                 <th
                   scope="col"
@@ -140,22 +190,38 @@ const DepartmentVacancyRequests = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {vacancyRequests.map((request) => (
-                <tr key={request._id} className="hover:bg-gray-50">
+              {vacancyRequests.map((vacancy) => (
+                <tr key={vacancy._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{request.title}</div>
-                    <div className="text-sm text-gray-500">{request.location}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(request.createdAt)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(request.status)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.type}</div>
+                    <div className="text-sm font-medium text-gray-900">{vacancy.position}</div>
+                    <div className="text-sm text-gray-500">
+                      ${vacancy.salary?.toLocaleString() || "N/A"}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {request.feedback || (request.status === "pending" ? "Awaiting review" : "No feedback provided")}
+                      {vacancy.departmentName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{formatDate(vacancy.createdAt)}</div>
+                    <div className="text-sm text-gray-500">
+                      Deadline: {formatDate(vacancy.endDate)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(vacancy.status, vacancy.requestStatus)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      <div>Experience: {vacancy.experience}</div>
+                      <div>Education: {vacancy.eduLevel}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900 max-w-xs">
+                      {vacancy.feedback || 
+                       (vacancy.requestStatus === "pending" ? "Awaiting review" : "No feedback provided")}
                     </div>
                   </td>
                 </tr>
@@ -165,8 +231,8 @@ const DepartmentVacancyRequests = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default DepartmentVacancyRequests
+export default DepartmentVacancyRequests;
 

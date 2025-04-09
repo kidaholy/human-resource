@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom"
 import axios from "axios"
 import {
   FaArrowLeft,
@@ -14,10 +14,14 @@ import {
   FaFileAlt,
   FaCheck,
   FaTimes,
+  FaEdit,
+  FaTrash
 } from "react-icons/fa"
 
 const ApplicantDetails = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [applicant, setApplicant] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -25,9 +29,11 @@ const ApplicantDetails = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [feedback, setFeedback] = useState("")
   const [actionType, setActionType] = useState(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
 
   useEffect(() => {
     const fetchApplicantDetails = async () => {
+      setLoading(true)
       try {
         const response = await axios.get(`http://localhost:5000/api/applicants/${id}`, {
           headers: {
@@ -36,6 +42,7 @@ const ApplicantDetails = () => {
         })
 
         if (response.data.success) {
+          console.log("Fetched applicant data:", response.data.applicant)
           setApplicant(response.data.applicant)
         } else {
           // If API doesn't return success, use mock data
@@ -101,7 +108,7 @@ const ApplicantDetails = () => {
     }
 
     fetchApplicantDetails()
-  }, [id])
+  }, [id, location])
 
   const handleAction = (action) => {
     setActionType(action)
@@ -153,6 +160,32 @@ const ApplicantDetails = () => {
       setProcessingAction(false)
     }
   }
+
+  const handleDelete = async () => {
+    setProcessingAction(true);
+    
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/applicants/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.data.success) {
+        // Redirect back to the applicants list
+        navigate("/admin-dashboard/applicants");
+      } else {
+        alert("Failed to delete application. Please try again.");
+        setShowDeleteConfirmation(false);
+      }
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert("Failed to delete application. Please try again.");
+      setShowDeleteConfirmation(false);
+    } finally {
+      setProcessingAction(false);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -209,10 +242,25 @@ const ApplicantDetails = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <Link to="/admin-dashboard/applicants" className="text-teal-600 hover:text-teal-700 flex items-center">
           <FaArrowLeft className="mr-2" /> Back to Applicants
         </Link>
+        <div className="flex space-x-3">
+          <Link 
+            to={`/admin-dashboard/edit-applicant/${id}`}
+            className="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+          >
+            <FaEdit className="mr-2" /> Edit
+          </Link>
+          <button 
+            onClick={() => setShowDeleteConfirmation(true)} 
+            className="flex items-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+            disabled={processingAction}
+          >
+            <FaTrash className="mr-2" /> Delete
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -270,7 +318,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">Date of Birth</p>
-                    <p>{new Date(applicant.dob).toLocaleDateString()}</p>
+                    <p>{applicant.dob ? new Date(applicant.dob).toLocaleDateString() : "N/A"}</p>
                   </div>
                 </div>
 
@@ -280,7 +328,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">Gender</p>
-                    <p className="capitalize">{applicant.gender}</p>
+                    <p className="capitalize">{applicant.gender || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -296,7 +344,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">Degree</p>
-                    <p>{applicant.education.degree}</p>
+                    <p>{applicant.education?.degree || "N/A"}</p>
                   </div>
                 </div>
 
@@ -306,7 +354,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">Institution</p>
-                    <p>{applicant.education.institution}</p>
+                    <p>{applicant.education?.institution || "N/A"}</p>
                   </div>
                 </div>
 
@@ -316,7 +364,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">Graduation Year</p>
-                    <p>{applicant.education.graduationYear}</p>
+                    <p>{applicant.education?.graduationYear || "N/A"}</p>
                   </div>
                 </div>
 
@@ -326,7 +374,7 @@ const ApplicantDetails = () => {
                   </div>
                   <div>
                     <p className="font-medium">CGPA</p>
-                    <p>{applicant.education.cgpa}</p>
+                    <p>{applicant.education?.cgpa || "N/A"}</p>
                   </div>
                 </div>
               </div>
@@ -404,6 +452,34 @@ const ApplicantDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Delete Application</h3>
+            <p className="mb-4">
+              Are you sure you want to delete this application from <strong>{applicant.fullName}</strong>?
+            </p>
+            <p className="mb-4 text-red-600">This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={processingAction}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md"
+              >
+                {processingAction ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feedback Modal */}
       {showFeedbackModal && (

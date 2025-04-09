@@ -34,9 +34,12 @@ import ApplyJob from "./pages/ApplyJob.jsx"
 import ApplicantDashboard from "./pages/ApplicantDashboard.jsx"
 import ManageApplicants from "./components/applicant/ManageApplicants.jsx"
 import ApplicantDetails from "./components/applicant/ApplicantDetails.jsx"
+import EditApplicant from "./components/applicant/EditApplicant.jsx"
 import RequestVacancy from "./components/vacancy/RequestVacancy.jsx"
 import ManageVacancyRequests from "./components/vacancy/ManageVacancyRequests.jsx"
 import DepartmentVacancyRequests from "./components/vacancy/DepartmentVacancyRequests.jsx"
+import VacancyDetails from "./components/vacancy/VacancyDetails.jsx"
+import EditVacancy from "./components/vacancy/EditVacancy.jsx"
 
 function App() {
   return (
@@ -86,8 +89,11 @@ function App() {
             <Route path="/admin-dashboard/leave" element={<ManageLeave />}></Route>
             <Route path="/admin-dashboard/vacancies" element={<JobVacancyList />}></Route>
             <Route path="/admin-dashboard/add-vacancy" element={<AddVacancy />}></Route>
+            <Route path="/admin-dashboard/vacancy/:id" element={<VacancyDetails />}></Route>
+            <Route path="/admin-dashboard/edit-vacancy/:id" element={<EditVacancy />}></Route>
             <Route path="/admin-dashboard/applicants" element={<ManageApplicants />}></Route>
             <Route path="/admin-dashboard/applicants/:id" element={<ApplicantDetails />}></Route>
+            <Route path="/admin-dashboard/edit-applicant/:id" element={<EditApplicant />}></Route>
             <Route path="/admin-dashboard/vacancy-requests" element={<ManageVacancyRequests />}></Route>
           </Route>
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import axios from "axios"
 import DataTable from "react-data-table-component"
-import { FaSearch, FaFilter, FaEye, FaCheck, FaTimes } from "react-icons/fa"
+import { FaSearch, FaFilter, FaEye, FaCheck, FaTimes, FaEdit, FaTrash } from "react-icons/fa"
 
 const ManageApplicants = () => {
   const [applicants, setApplicants] = useState([])
@@ -20,6 +20,8 @@ const ManageApplicants = () => {
   const [currentApplicant, setCurrentApplicant] = useState(null)
   const [feedback, setFeedback] = useState("")
   const [actionType, setActionType] = useState(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [applicantToDelete, setApplicantToDelete] = useState(null)
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -361,6 +363,39 @@ const ManageApplicants = () => {
     }
   }
 
+  const handleDelete = async (applicantId) => {
+    setProcessingId(applicantId);
+    
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/applicants/${applicantId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.data.success) {
+        // Remove the applicant from state
+        setApplicants(prevApplicants => 
+          prevApplicants.filter(app => app._id !== applicantId)
+        );
+        setShowDeleteConfirmation(false);
+        setApplicantToDelete(null);
+      } else {
+        alert("Failed to delete application. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert("Failed to delete application. Please try again.");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const openDeleteConfirmation = (applicant) => {
+    setApplicantToDelete(applicant);
+    setShowDeleteConfirmation(true);
+  };
+
   const columns = [
     {
       name: "Name",
@@ -410,6 +445,23 @@ const ManageApplicants = () => {
           >
             <FaEye />
           </Link>
+
+          <Link
+            to={`/admin-dashboard/edit-applicant/${row._id}`}
+            className="text-yellow-600 hover:text-yellow-800"
+            title="Edit Application"
+          >
+            <FaEdit />
+          </Link>
+
+          <button
+            onClick={() => openDeleteConfirmation(row)}
+            disabled={processingId === row._id}
+            className="text-red-600 hover:text-red-800"
+            title="Delete Application"
+          >
+            <FaTrash />
+          </button>
 
           {row.status === "pending" && (
             <>
@@ -529,6 +581,34 @@ const ManageApplicants = () => {
               </div>
             }
           />
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && applicantToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Delete Application</h3>
+            <p className="mb-4">
+              Are you sure you want to delete the application from <strong>{applicantToDelete.fullName}</strong> for the position of <strong>{applicantToDelete.vacancy.position}</strong>?
+            </p>
+            <p className="mb-4 text-red-600">This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(applicantToDelete._id)}
+                disabled={processingId === applicantToDelete._id}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md"
+              >
+                {processingId === applicantToDelete._id ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
