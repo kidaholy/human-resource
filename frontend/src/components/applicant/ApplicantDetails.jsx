@@ -42,173 +42,93 @@ const ApplicantDetails = () => {
         })
 
         if (response.data.success) {
-          console.log("Fetched applicant data:", response.data.applicant)
           setApplicant(response.data.applicant)
         } else {
-          // If API doesn't return success, use mock data
-          setApplicant({
-            _id: id,
-            fullName: "John Smith",
-            email: "john.smith@example.com",
-            phone: "+1234567890",
-            dob: "1985-05-15",
-            gender: "male",
-            vacancy: {
-              _id: "vac1",
-              position: "Senior Lecturer",
-              department: { dep_name: "Computer Science" },
-            },
-            education: {
-              degree: "PhD in Computer Science",
-              institution: "Harvard University",
-              graduationYear: 2018,
-              cgpa: 3.9,
-            },
-            experience:
-              "10 years of teaching experience in top universities. Research focus on artificial intelligence and machine learning.",
-            resume: "/path/to/resume.pdf",
-            status: "pending",
-            createdAt: "2023-06-15T10:30:00Z",
-            feedback: "",
-          })
+          setError("Failed to load applicant details")
         }
       } catch (error) {
         console.error("Error fetching applicant details:", error)
         setError("Failed to load applicant details. Please try again later.")
-
-        // Use mock data if API fails
-        setApplicant({
-          _id: id,
-          fullName: "John Smith",
-          email: "john.smith@example.com",
-          phone: "+1234567890",
-          dob: "1985-05-15",
-          gender: "male",
-          vacancy: {
-            _id: "vac1",
-            position: "Senior Lecturer",
-            department: { dep_name: "Computer Science" },
-          },
-          education: {
-            degree: "PhD in Computer Science",
-            institution: "Harvard University",
-            graduationYear: 2018,
-            cgpa: 3.9,
-          },
-          experience:
-            "10 years of teaching experience in top universities. Research focus on artificial intelligence and machine learning.",
-          resume: "/path/to/resume.pdf",
-          status: "pending",
-          createdAt: "2023-06-15T10:30:00Z",
-          feedback: "",
-        })
       } finally {
         setLoading(false)
       }
     }
 
     fetchApplicantDetails()
-  }, [id, location])
+  }, [id])
 
-  const handleAction = (action) => {
-    setActionType(action)
-    setFeedback("")
-    setShowFeedbackModal(true)
-  }
-
-  const submitAction = async () => {
-    if (!actionType) return
-
-    const newStatus =
-      actionType === "shortlist"
-        ? "shortlisted"
-        : actionType === "select"
-          ? "selected"
-          : actionType === "reject"
-            ? "rejected"
-            : "pending"
-
+  const handleStatusChange = async (newStatus) => {
     setProcessingAction(true)
-
     try {
       const response = await axios.put(
         `http://localhost:5000/api/applicants/${id}/status`,
-        {
-          status: newStatus,
-          feedback: feedback,
-        },
+        { status: newStatus },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        },
+        }
       )
 
       if (response.data.success) {
-        // Update local state
-        setApplicant((prev) => ({
-          ...prev,
-          status: newStatus,
-          feedback: feedback,
-        }))
-        setShowFeedbackModal(false)
+        setApplicant((prev) => ({ ...prev, status: newStatus }))
       }
     } catch (error) {
-      console.error("Error updating applicant status:", error)
-      alert("Failed to update applicant status. Please try again.")
+      console.error("Error updating status:", error)
+      setError("Failed to update status. Please try again.")
     } finally {
       setProcessingAction(false)
     }
   }
 
   const handleDelete = async () => {
-    setProcessingAction(true);
-    
+    setProcessingAction(true)
     try {
       const response = await axios.delete(`http://localhost:5000/api/applicants/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      });
+      })
 
       if (response.data.success) {
-        // Redirect back to the applicants list
-        navigate("/admin-dashboard/applicants");
-      } else {
-        alert("Failed to delete application. Please try again.");
-        setShowDeleteConfirmation(false);
+        navigate("/admin-dashboard/applicants")
       }
     } catch (error) {
-      console.error("Error deleting application:", error);
-      alert("Failed to delete application. Please try again.");
-      setShowDeleteConfirmation(false);
+      console.error("Error deleting applicant:", error)
+      setError("Failed to delete applicant. Please try again.")
     } finally {
-      setProcessingAction(false);
+      setProcessingAction(false)
     }
-  };
+  }
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "pending":
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Pending</span>
-      case "shortlisted":
-        return <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">Shortlisted</span>
-      case "interviewed":
-        return (
-          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">Interviewed</span>
-        )
-      case "selected":
-        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Selected</span>
-      case "rejected":
-        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Rejected</span>
-      default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">{status}</span>
+  const submitFeedback = async () => {
+    setProcessingAction(true)
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/applicants/${id}`,
+        { feedback },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      if (response.data.success) {
+        setApplicant((prev) => ({ ...prev, feedback }))
+        setShowFeedbackModal(false)
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error)
+      setError("Failed to submit feedback. Please try again.")
+    } finally {
+      setProcessingAction(false)
     }
   }
 
   if (loading) {
     return (
-      <div className="p-6 flex justify-center">
+      <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
       </div>
     )
@@ -216,310 +136,253 @@ const ApplicantDetails = () => {
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
-          <p>{error}</p>
-        </div>
-        <Link to="/admin-dashboard/applicants" className="text-teal-600 hover:text-teal-700 flex items-center">
-          <FaArrowLeft className="mr-2" /> Back to Applicants
-        </Link>
+      <div className="p-4 bg-red-50 border-l-4 border-red-500">
+        <p className="text-red-700">{error}</p>
       </div>
     )
   }
 
   if (!applicant) {
     return (
-      <div className="p-6">
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
-          <p>Applicant not found</p>
-        </div>
-        <Link to="/admin-dashboard/applicants" className="text-teal-600 hover:text-teal-700 flex items-center">
-          <FaArrowLeft className="mr-2" /> Back to Applicants
-        </Link>
+      <div className="p-4 bg-yellow-50 border-l-4 border-yellow-500">
+        <p className="text-yellow-700">Applicant not found</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex justify-between items-center">
-        <Link to="/admin-dashboard/applicants" className="text-teal-600 hover:text-teal-700 flex items-center">
-          <FaArrowLeft className="mr-2" /> Back to Applicants
-        </Link>
-        <div className="flex space-x-3">
-          <Link 
-            to={`/admin-dashboard/edit-applicant/${id}`}
-            className="flex items-center bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
-          >
-            <FaEdit className="mr-2" /> Edit
-          </Link>
-          <button 
-            onClick={() => setShowDeleteConfirmation(true)} 
-            className="flex items-center bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-            disabled={processingAction}
-          >
-            <FaTrash className="mr-2" /> Delete
-          </button>
-        </div>
-      </div>
-
+    <div className="container mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="bg-teal-600 p-6 text-white">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center">
-            <div>
-              <h2 className="text-2xl font-bold">{applicant.fullName}</h2>
-              <p className="text-teal-100">
-                Application for {applicant.vacancy.position} - {applicant.vacancy.department.dep_name}
-              </p>
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Link
+                to="/admin-dashboard/applicants"
+                className="text-teal-600 hover:text-teal-700 mr-4"
+              >
+                <FaArrowLeft className="text-xl" />
+              </Link>
+              <h2 className="text-xl font-bold text-gray-800">Applicant Details</h2>
             </div>
-            <div className="mt-4 md:mt-0">{getStatusBadge(applicant.status)}</div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleStatusChange("shortlisted")}
+                disabled={processingAction}
+                className="px-4 py-2 bg-blue-50 text-blue-700 border-2 border-blue-500 rounded-md hover:bg-blue-100 disabled:opacity-50 transition-colors duration-200"
+              >
+                Shortlist
+              </button>
+              <button
+                onClick={() => handleStatusChange("rejected")}
+                disabled={processingAction}
+                className="px-4 py-2 bg-red-50 text-red-700 border-2 border-red-500 rounded-md hover:bg-red-100 disabled:opacity-50 transition-colors duration-200"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => setShowFeedbackModal(true)}
+                disabled={processingAction}
+                className="px-4 py-2 bg-teal-50 text-teal-700 border-2 border-teal-500 rounded-md hover:bg-teal-100 disabled:opacity-50 transition-colors duration-200"
+              >
+                Add Feedback
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirmation(true)}
+                disabled={processingAction}
+                className="px-4 py-2 bg-red-50 text-red-700 border-2 border-red-500 rounded-md hover:bg-red-100 disabled:opacity-50 transition-colors duration-200"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold border-b pb-2 mb-4">Personal Information</h3>
-
+            {/* Personal Information */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
               <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaUser className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Full Name</p>
-                    <p>{applicant.fullName}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaUser className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Name:</span>
+                  <span className="ml-2 font-medium">{applicant.fullName}</span>
                 </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaEnvelope className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p>{applicant.email}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaEnvelope className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Email:</span>
+                  <span className="ml-2 font-medium">{applicant.email}</span>
                 </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaPhone className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <p>{applicant.phone}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaPhone className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Phone:</span>
+                  <span className="ml-2 font-medium">{applicant.phone}</span>
                 </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaCalendarAlt className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Date of Birth</p>
-                    <p>{applicant.dob ? new Date(applicant.dob).toLocaleDateString() : "N/A"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaUser className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Gender</p>
-                    <p className="capitalize">{applicant.gender || "N/A"}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaCalendarAlt className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Applied On:</span>
+                  <span className="ml-2 font-medium">
+                    {new Date(applicant.applicationDate).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold border-b pb-2 mb-4">Education</h3>
-
+            {/* Education */}
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Education</h3>
               <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaGraduationCap className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Degree</p>
-                    <p>{applicant.education?.degree || "N/A"}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaGraduationCap className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Degree:</span>
+                  <span className="ml-2 font-medium">{applicant.education?.degree || "Not specified"}</span>
                 </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaBuilding className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Institution</p>
-                    <p>{applicant.education?.institution || "N/A"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaCalendarAlt className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Graduation Year</p>
-                    <p>{applicant.education?.graduationYear || "N/A"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="text-gray-500 w-10">
-                    <FaGraduationCap className="mt-1" />
-                  </div>
-                  <div>
-                    <p className="font-medium">CGPA</p>
-                    <p>{applicant.education?.cgpa || "N/A"}</p>
-                  </div>
+                <div className="flex items-center">
+                  <FaBuilding className="text-gray-400 mr-3" />
+                  <span className="text-gray-600">Institution:</span>
+                  <span className="ml-2 font-medium">{applicant.education?.institution || "Not specified"}</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold border-b pb-2 mb-4">Experience</h3>
-            <p className="whitespace-pre-line">{applicant.experience || "No experience provided"}</p>
-          </div>
-
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold border-b pb-2 mb-4">Resume</h3>
-            <div className="flex items-center">
-              <FaFileAlt className="text-gray-500 mr-2" />
-              <a
-                href={applicant.resume}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-teal-600 hover:text-teal-700"
-              >
-                View Resume
-              </a>
+            {/* Experience */}
+            <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
+              <h3 className="text-lg font-semibold mb-4">Experience</h3>
+              {applicant.experience ? (
+                <div className="space-y-4">
+                  {Array.isArray(applicant.experience) ? (
+                    applicant.experience.map((exp, index) => (
+                      <div key={index} className="border-l-4 border-teal-500 pl-4">
+                        <div className="font-medium">{exp.title}</div>
+                        <div className="text-gray-600">{exp.company}</div>
+                        <div className="text-sm text-gray-500">
+                          {new Date(exp.startDate).toLocaleDateString()} -{" "}
+                          {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : "Present"}
+                        </div>
+                        <div className="mt-2 text-gray-700">{exp.description}</div>
+                      </div>
+                    ))
+                  ) : typeof applicant.experience === 'string' ? (
+                    <div className="text-gray-700">{applicant.experience}</div>
+                  ) : (
+                    <div className="text-gray-700">
+                      {applicant.experience.title && <div className="font-medium">{applicant.experience.title}</div>}
+                      {applicant.experience.company && <div className="text-gray-600">{applicant.experience.company}</div>}
+                      {applicant.experience.description && <div className="mt-2">{applicant.experience.description}</div>}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500">No experience information provided</p>
+              )}
             </div>
-          </div>
 
-          {applicant.feedback && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold border-b pb-2 mb-4">Feedback</h3>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <p className="whitespace-pre-line">{applicant.feedback}</p>
+            {/* Resume */}
+            <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
+              <h3 className="text-lg font-semibold mb-4">Resume</h3>
+              {applicant.resume ? (
+                <a
+                  href={`http://localhost:5000${applicant.resume}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-teal-600 hover:text-teal-700"
+                >
+                  <FaFileAlt className="mr-2" />
+                  View Resume
+                </a>
+              ) : (
+                <p className="text-gray-500">No resume uploaded</p>
+              )}
+            </div>
+
+            {/* Status and Feedback */}
+            <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
+              <h3 className="text-lg font-semibold mb-4">Status and Feedback</h3>
+              <div className="space-y-4">
+                <div>
+                  <span className="text-gray-600">Status:</span>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                      applicant.status === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : applicant.status === "shortlisted"
+                        ? "bg-blue-100 text-blue-800"
+                        : applicant.status === "selected"
+                        ? "bg-green-100 text-green-800"
+                        : applicant.status === "rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {applicant.status}
+                  </span>
+                </div>
+                {applicant.feedback && (
+                  <div>
+                    <span className="text-gray-600">Feedback:</span>
+                    <p className="mt-2 text-gray-700">{applicant.feedback}</p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-
-          <div className="mt-8 flex flex-col md:flex-row gap-4">
-            {applicant.status === "pending" && (
-              <>
-                <button
-                  onClick={() => handleAction("shortlist")}
-                  disabled={processingAction}
-                  className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition-colors disabled:opacity-50"
-                >
-                  <FaCheck className="mr-2" /> Shortlist
-                </button>
-                <button
-                  onClick={() => handleAction("reject")}
-                  disabled={processingAction}
-                  className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md transition-colors disabled:opacity-50"
-                >
-                  <FaTimes className="mr-2" /> Reject
-                </button>
-              </>
-            )}
-
-            {applicant.status === "shortlisted" && (
-              <button
-                onClick={() => handleAction("select")}
-                disabled={processingAction}
-                className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition-colors disabled:opacity-50"
-              >
-                <FaCheck className="mr-2" /> Select
-              </button>
-            )}
-
-            {(applicant.status === "shortlisted" || applicant.status === "selected") && (
-              <button
-                onClick={() => handleAction("reject")}
-                disabled={processingAction}
-                className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md transition-colors disabled:opacity-50"
-              >
-                <FaTimes className="mr-2" /> Reject
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Delete Application</h3>
-            <p className="mb-4">
-              Are you sure you want to delete this application from <strong>{applicant.fullName}</strong>?
-            </p>
-            <p className="mb-4 text-red-600">This action cannot be undone.</p>
-            <div className="flex justify-end space-x-3">
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Add Feedback</h3>
+            <textarea
+              className="w-full h-32 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Enter your feedback..."
+            />
+            <div className="flex justify-end gap-4 mt-4">
               <button
-                onClick={() => setShowDeleteConfirmation(false)}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-50 text-gray-700 border-2 border-gray-300 rounded-md hover:bg-gray-100 transition-colors duration-200"
+                onClick={() => {
+                  setShowFeedbackModal(false)
+                  setFeedback("")
+                }}
               >
                 Cancel
               </button>
               <button
-                onClick={handleDelete}
+                className="px-4 py-2 bg-teal-50 text-teal-700 border-2 border-teal-500 rounded-md hover:bg-teal-100 transition-colors duration-200"
+                onClick={submitFeedback}
                 disabled={processingAction}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md"
               >
-                {processingAction ? "Deleting..." : "Delete"}
+                Submit
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Feedback Modal */}
-      {showFeedbackModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">
-              {actionType === "shortlist"
-                ? "Shortlist Applicant"
-                : actionType === "select"
-                  ? "Select Applicant"
-                  : "Reject Application"}
-            </h3>
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold mb-4">Confirm Delete</h3>
             <p className="mb-4">
-              {actionType === "shortlist"
-                ? "Provide feedback for shortlisting"
-                : actionType === "select"
-                  ? "Provide feedback for selection"
-                  : "Provide reason for rejection"}
+              Are you sure you want to delete this application? This action cannot be undone.
             </p>
-            <textarea
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md mb-4"
-              rows="4"
-              placeholder="Enter your feedback here..."
-            ></textarea>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end gap-4">
               <button
-                onClick={() => setShowFeedbackModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-50 text-gray-700 border-2 border-gray-300 rounded-md hover:bg-gray-100 transition-colors duration-200"
+                onClick={() => setShowDeleteConfirmation(false)}
               >
                 Cancel
               </button>
               <button
-                onClick={submitAction}
-                className={`px-4 py-2 text-white rounded-md ${
-                  actionType === "reject" ? "bg-red-500 hover:bg-red-600" : "bg-teal-600 hover:bg-teal-700"
-                }`}
+                className="px-4 py-2 bg-red-50 text-red-700 border-2 border-red-500 rounded-md hover:bg-red-100 transition-colors duration-200"
+                onClick={handleDelete}
+                disabled={processingAction}
               >
-                Confirm
+                Delete
               </button>
             </div>
           </div>

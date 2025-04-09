@@ -349,55 +349,34 @@ const ManageApplicants = () => {
           >
             <FaEye />
           </Link>
-
-          <Link
-            to={`/admin-dashboard/edit-applicant/${row._id}`}
-            className="text-yellow-600 hover:text-yellow-800"
-            title="Edit Application"
+          <button
+            onClick={() => handleStatusChange(row._id, "shortlisted")}
+            className="text-blue-600 hover:text-blue-800"
+            title="Shortlist"
+          >
+            <FaCheck />
+          </button>
+          <button
+            onClick={() => handleStatusChange(row._id, "rejected")}
+            className="text-red-600 hover:text-red-800"
+            title="Reject"
+          >
+            <FaTimes />
+          </button>
+          <button
+            onClick={() => openFeedbackModal(row, "feedback")}
+            className="text-teal-600 hover:text-teal-800"
+            title="Add Feedback"
           >
             <FaEdit />
-          </Link>
-
+          </button>
           <button
             onClick={() => openDeleteConfirmation(row)}
-            disabled={processingId === row._id}
             className="text-red-600 hover:text-red-800"
-            title="Delete Application"
+            title="Delete"
           >
             <FaTrash />
           </button>
-
-          {row.status === "pending" && (
-            <>
-              <button
-                onClick={() => openFeedbackModal(row, "shortlist")}
-                disabled={processingId === row._id}
-                className="text-blue-600 hover:text-blue-800"
-                title="Shortlist"
-              >
-                <FaCheck />
-              </button>
-              <button
-                onClick={() => openFeedbackModal(row, "reject")}
-                disabled={processingId === row._id}
-                className="text-red-600 hover:text-red-800"
-                title="Reject"
-              >
-                <FaTimes />
-              </button>
-            </>
-          )}
-
-          {row.status === "shortlisted" && (
-            <button
-              onClick={() => openFeedbackModal(row, "select")}
-              disabled={processingId === row._id}
-              className="text-green-600 hover:text-green-800"
-              title="Select"
-            >
-              <FaCheck />
-            </button>
-          )}
         </div>
       ),
     },
