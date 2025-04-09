@@ -26,15 +26,15 @@ const ManageApplicants = () => {
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/applicants", {
+        const response = await axios.get("http://localhost:5000/api/applicants/all", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         })
 
         if (response.data.success) {
-          setApplicants(response.data.applicants)
-          setFilteredApplicants(response.data.applicants)
+          setApplicants(response.data.applications)
+          setFilteredApplicants(response.data.applications)
         } else {
           // If API doesn't return success, use mock data
           const mockData = [
@@ -48,71 +48,23 @@ const ManageApplicants = () => {
                 position: "Senior Lecturer",
                 department: { dep_name: "Computer Science" },
               },
-              education: {
-                degree: "PhD in Computer Science",
-                institution: "Harvard University",
-                graduationYear: 2018,
-                cgpa: 3.9,
-              },
               status: "pending",
-              createdAt: "2023-06-15T10:30:00Z",
+              applicationDate: "2023-06-15T10:30:00Z",
+              feedback: "",
             },
             {
               _id: "app2",
               fullName: "Jane Doe",
               email: "jane.doe@example.com",
-              phone: "+1987654321",
+              phone: "+1234567891",
               vacancy: {
                 _id: "vac2",
                 position: "Assistant Professor",
                 department: { dep_name: "Electrical Engineering" },
               },
-              education: {
-                degree: "PhD in Electrical Engineering",
-                institution: "MIT",
-                graduationYear: 2019,
-                cgpa: 3.8,
-              },
               status: "shortlisted",
-              createdAt: "2023-05-20T14:45:00Z",
-            },
-            {
-              _id: "app3",
-              fullName: "Michael Johnson",
-              email: "michael.johnson@example.com",
-              phone: "+1122334455",
-              vacancy: {
-                _id: "vac3",
-                position: "Lab Assistant",
-                department: { dep_name: "Computer Science" },
-              },
-              education: {
-                degree: "BSc in Computer Science",
-                institution: "Stanford University",
-                graduationYear: 2020,
-                cgpa: 3.5,
-              },
-              status: "rejected",
-              createdAt: "2023-04-10T09:15:00Z",
-            },
-            {
-              _id: "app4",
-              fullName: "Emily Wilson",
-              email: "emily.wilson@example.com",
-              phone: "+1567891234",
-              vacancy: {
-                _id: "vac1",
-                position: "Senior Lecturer",
-                department: { dep_name: "Computer Science" },
-              },
-              education: {
-                degree: "PhD in Computer Science",
-                institution: "Cambridge University",
-                graduationYear: 2017,
-                cgpa: 3.7,
-              },
-              status: "selected",
-              createdAt: "2023-03-25T11:20:00Z",
+              applicationDate: "2023-05-20T14:45:00Z",
+              feedback: "Your application has been shortlisted. We will contact you for an interview soon.",
             },
           ]
           setApplicants(mockData)
@@ -152,71 +104,23 @@ const ManageApplicants = () => {
               position: "Senior Lecturer",
               department: { dep_name: "Computer Science" },
             },
-            education: {
-              degree: "PhD in Computer Science",
-              institution: "Harvard University",
-              graduationYear: 2018,
-              cgpa: 3.9,
-            },
             status: "pending",
-            createdAt: "2023-06-15T10:30:00Z",
+            applicationDate: "2023-06-15T10:30:00Z",
+            feedback: "",
           },
           {
             _id: "app2",
             fullName: "Jane Doe",
             email: "jane.doe@example.com",
-            phone: "+1987654321",
+            phone: "+1234567891",
             vacancy: {
               _id: "vac2",
               position: "Assistant Professor",
               department: { dep_name: "Electrical Engineering" },
             },
-            education: {
-              degree: "PhD in Electrical Engineering",
-              institution: "MIT",
-              graduationYear: 2019,
-              cgpa: 3.8,
-            },
             status: "shortlisted",
-            createdAt: "2023-05-20T14:45:00Z",
-          },
-          {
-            _id: "app3",
-            fullName: "Michael Johnson",
-            email: "michael.johnson@example.com",
-            phone: "+1122334455",
-            vacancy: {
-              _id: "vac3",
-              position: "Lab Assistant",
-              department: { dep_name: "Computer Science" },
-            },
-            education: {
-              degree: "BSc in Computer Science",
-              institution: "Stanford University",
-              graduationYear: 2020,
-              cgpa: 3.5,
-            },
-            status: "rejected",
-            createdAt: "2023-04-10T09:15:00Z",
-          },
-          {
-            _id: "app4",
-            fullName: "Emily Wilson",
-            email: "emily.wilson@example.com",
-            phone: "+1567891234",
-            vacancy: {
-              _id: "vac1",
-              position: "Senior Lecturer",
-              department: { dep_name: "Computer Science" },
-            },
-            education: {
-              degree: "PhD in Computer Science",
-              institution: "Cambridge University",
-              graduationYear: 2017,
-              cgpa: 3.7,
-            },
-            status: "selected",
-            createdAt: "2023-03-25T11:20:00Z",
+            applicationDate: "2023-05-20T14:45:00Z",
+            feedback: "Your application has been shortlisted. We will contact you for an interview soon.",
           },
         ]
         setApplicants(mockData)
@@ -425,7 +329,7 @@ const ManageApplicants = () => {
     },
     {
       name: "Applied On",
-      selector: (row) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
+      selector: (row) => row.applicationDate ? new Date(row.applicationDate).toLocaleDateString() : "N/A",
       sortable: true,
     },
     {

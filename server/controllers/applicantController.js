@@ -211,8 +211,16 @@ const applyForJob = async (req, res) => {
 // Get all applications (admin only)
 const getAllApplications = async (req, res) => {
   try {
+    // Check if user is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        error: "Unauthorized access. Admin privileges required.",
+      })
+    }
+
     const applicants = await Applicant.find()
-      .populate("user", "name email")
+      .populate("user", "name email phone")
       .populate({
         path: "applications.vacancy",
         populate: { path: "department", select: "dep_name" },
@@ -224,41 +232,32 @@ const getAllApplications = async (req, res) => {
       applicant.applications.map((app) => ({
         _id: app._id,
         applicantId: applicant._id,
-        name: applicant.name || "Unknown",
-        fullName: applicant.name || "Unknown",
-        email: applicant.email || "No email provided",
-        phone: applicant.phone || "No phone provided",
-        status: app.status || "pending",
-        applicationDate: app.applicationDate || app.createdAt || new Date(),
+        fullName: applicant.name,
+        email: applicant.email,
+        phone: applicant.phone,
+        status: app.status,
+        applicationDate: app.applicationDate,
         resume: app.resume,
-        feedback: app.feedback || "",
-        vacancy: app.vacancy || {},
-        education:
-          applicant.education.length > 0
-            ? applicant.education[0]
-            : {
-                degree: "N/A",
-                institution: "N/A",
-                fieldOfStudy: "N/A",
-                graduationYear: "N/A",
-              },
-        experience: applicant.experience.length > 0 ? applicant.experience[0] : null,
+        feedback: app.feedback,
+        vacancy: app.vacancy,
+        education: applicant.education,
+        experience: applicant.experience,
         user: {
           _id: applicant.user?._id,
-          name: applicant.user?.name || applicant.name || "Unknown",
+          name: applicant.user?.name,
         },
-      })),
+      }))
     )
 
     return res.status(200).json({
       success: true,
-      applicants: formattedApplications,
+      applications: formattedApplications,
     })
   } catch (error) {
     console.error("Error fetching applications:", error)
     return res.status(500).json({
       success: false,
-      error: "Server error in fetching applications",
+      error: "Failed to fetch applications. Please try again later.",
     })
   }
 }
