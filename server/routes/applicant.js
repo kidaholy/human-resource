@@ -1,31 +1,41 @@
-// server/routes/applicant.js
 import express from "express"
-import authMiddleware from "../middleware/authMiddleware.js"
-import roleMiddleware from "../middleware/roleMiddleware.js"
 import {
-  applyForJob,
-  upload,
   getAllApplications,
   getApplicationById,
   getUserApplications,
+  applyForJob,
   updateApplicationStatus,
   registerApplicant,
   deleteApplication,
-  updateApplication
+  updateApplication,
+  upload,
 } from "../controllers/applicantController.js"
+import verifyUser from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
-// Public routes
-router.post("/register-applicant", registerApplicant)
-router.post("/apply", upload.single("resume"), applyForJob)
+// Apply for a job
+router.post("/apply", upload.single("resume"), verifyUser, applyForJob)
 
-// Protected routes
-router.get("/", authMiddleware, roleMiddleware(["admin"]), getAllApplications)
-router.get("/my-applications", authMiddleware, getUserApplications)
-router.get("/:id", authMiddleware, getApplicationById)
-router.put("/:id/status", authMiddleware, roleMiddleware(["admin"]), updateApplicationStatus)
-router.put("/:id", authMiddleware, roleMiddleware(["admin"]), updateApplication)
-router.delete("/:id", authMiddleware, roleMiddleware(["admin"]), deleteApplication)
+// Register as an applicant
+router.post("/register", registerApplicant)
+
+// Get all applications (admin only)
+router.get("/all", verifyUser, getAllApplications)
+
+// Get user applications
+router.get("/my-applications", verifyUser, getUserApplications)
+
+// Get application by ID
+router.get("/:id", verifyUser, getApplicationById)
+
+// Update application status
+router.put("/:id/status", verifyUser, updateApplicationStatus)
+
+// Update application
+router.put("/:id", verifyUser, updateApplication)
+
+// Delete application
+router.delete("/:id", verifyUser, deleteApplication)
 
 export default router

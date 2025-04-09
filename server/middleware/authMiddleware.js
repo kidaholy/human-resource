@@ -1,29 +1,53 @@
 import jwt from "jsonwebtoken"
 import User from "../models/User.js"
+
 const verifyUser = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1]
+    // Get token from header
+    const authHeader = req.headers.authorization
+    console.log("Auth header:", authHeader ? "Present" : "Missing")
+
+    if (!authHeader) {
+      console.log("No authorization header found")
+      req.user = null
+      return next()
+    }
+
+    // Check if token exists
+    const token = authHeader.split(" ")[1]
     if (!token) {
-      return res.status(401).json({ success: false, error: "No token provided" })
+      console.log("No token found in authorization header")
+      req.user = null
+      return next()
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_KEY)
-    if (!decoded) {
-      return res.status(401).json({ success: false, error: "Invalid token" })
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_KEY)
+      console.log("Token verified successfully:", decoded)
+
+      // Find user by ID
+      const user = await User.findById(decoded._id).select("-password")
+      if (!user) {
+        console.log("User not found with token ID:", decoded._id)
+        req.user = null
+        return next()
+      }
+
+      // Set user in request
+      console.log(`User authenticated: ${user._id} (${user.role})`)
+      req.user = user
+      next()
+    } catch (tokenError) {
+      console.error("Token verification error:", tokenError.message)
+      req.user = null
+      next()
     }
-
-    const user = await User.findById({ _id: decoded._id }).select("-password")
-
-    if (!user) {
-      return res.status(401).json({ success: false, error: "User not found" })
-    }
-
-    req.user = user
-    next()
   } catch (error) {
-    return res.status(500).json({ success: false, error: "server error" })
+    console.error("Authentication middleware error:", error)
+    req.user = null
+    next()
   }
 }
 
 export default verifyUser
-

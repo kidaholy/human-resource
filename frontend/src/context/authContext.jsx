@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     const verifyUser = async () => {
       try {
         const token = localStorage.getItem("token")
+        console.log("Verifying user with token:", token ? "Token exists" : "No token")
 
         if (token) {
           const response = await axios.get("http://localhost:5000/api/auth/verify", {
@@ -21,27 +22,39 @@ export const AuthProvider = ({ children }) => {
               Authorization: `Bearer ${token}`,
             },
           })
+
+          console.log("Verify response:", response.data)
+
           if (response.data.success) {
+            console.log("User verified:", response.data.user)
             setUser(response.data.user)
+          } else {
+            console.log("Verification failed, clearing user")
+            setUser(null)
+            localStorage.removeItem("token")
           }
         } else {
+          console.log("No token found, user is not logged in")
           setUser(null)
-          setLoading(false)
         }
       } catch (error) {
-        console.log(error)
-        if (error.response && !error.response.data.error) {
-          setUser(null)
-        }
+        console.error("Error verifying user:", error)
+        setUser(null)
+        localStorage.removeItem("token")
       } finally {
         setLoading(false)
       }
     }
+
     verifyUser()
   }, [])
 
-  const login = (user) => {
-    setUser(user)
+  const login = (userData, token) => {
+    console.log("Logging in user:", userData)
+    if (token) {
+      localStorage.setItem("token", token)
+    }
+    setUser(userData)
   }
 
   const logout = () => {
@@ -53,4 +66,3 @@ export const AuthProvider = ({ children }) => {
 
 export const useAuth = () => useContext(userContext)
 // Remove the default export since we're using named exports
-

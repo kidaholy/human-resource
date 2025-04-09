@@ -276,7 +276,7 @@ const ApplicantDashboard = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-500">
-                                {new Date(application.createdAt).toLocaleDateString()}
+                                {new Date(application.applicationDate).toLocaleDateString()}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(application.status)}</td>

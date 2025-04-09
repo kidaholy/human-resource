@@ -38,8 +38,21 @@ const ApplyJob = () => {
     resume: null,
   })
   const [formErrors, setFormErrors] = useState({})
+  const [authDebug, setAuthDebug] = useState({
+    isLoggedIn: !!user,
+    hasToken: false,
+    tokenValue: "",
+  })
 
   useEffect(() => {
+    // Check token on component mount
+    const token = localStorage.getItem("token")
+    setAuthDebug({
+      isLoggedIn: !!user,
+      hasToken: !!token,
+      tokenValue: token ? `${token.substring(0, 10)}...` : "No token",
+    })
+
     const fetchVacancy = async () => {
       try {
         setLoading(true)
@@ -144,19 +157,39 @@ const ApplyJob = () => {
       errors.resume = "Resume file size must be less than 5MB"
     }
 
+    // Password validation for non-logged in users
+    if (!user && document.getElementById("createAccount") && document.getElementById("createAccount").checked) {
+      const password = document.getElementById("password").value
+      if (!password) {
+        errors.password = "Password is required"
+      } else if (password.length < 6) {
+        errors.password = "Password must be at least 6 characters"
+      }
+    }
+
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError("")
 
     if (!validateForm()) {
       return
     }
 
+    // Skip account creation check if user is logged in
+    if (!user) {
+      const createAccountCheckbox = document.getElementById("createAccount")
+      if (!createAccountCheckbox || !createAccountCheckbox.checked) {
+        setError("You must be logged in or create an account to apply")
+        window.scrollTo(0, 0)
+        return
+      }
+    }
+
     setSubmitting(true)
-    setError("")
 
     try {
       // Create form data for file upload
@@ -175,15 +208,24 @@ const ApplyJob = () => {
       submitData.append("resume", formData.resume)
 
       // If user is not logged in, create account option
-      if (!user && document.getElementById("createAccount").checked) {
-        submitData.append("createAccount", true)
+      if (!user && document.getElementById("createAccount") && document.getElementById("createAccount").checked) {
+        submitData.append("createAccount", "true")
         submitData.append("password", document.getElementById("password").value)
       }
+
+      // Get the token from localStorage
+      const token = localStorage.getItem("token")
+
+      console.log("Submitting application with auth:", {
+        isLoggedIn: !!user,
+        hasToken: !!token,
+        userInfo: user ? { id: user._id, name: user.name, role: user.role } : null,
+      })
 
       const response = await axios.post("http://localhost:5000/api/applicants/apply", submitData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          ...(user ? { Authorization: `Bearer ${localStorage.getItem("token")}` } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       })
 
@@ -199,6 +241,7 @@ const ApplyJob = () => {
     } catch (error) {
       console.error("Application submission error:", error)
       setError(error.response?.data?.error || "Failed to submit application. Please try again.")
+      window.scrollTo(0, 0)
     } finally {
       setSubmitting(false)
     }
@@ -423,6 +466,30 @@ const ApplyJob = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {user && (
+                  <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+                    <p className="text-green-700">
+                      Logged in as: {user.name} ({user.role})
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Auth Debug: {authDebug.isLoggedIn ? "Logged In" : "Not Logged In"} | Token:{" "}
+                      {authDebug.hasToken ? "Present" : "Missing"}
+                    </p>
+                  </div>
+                )}
+
+                {!user && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4">
+                    <p className="text-yellow-700">
+                      You are not logged in. Please create an account or log in to apply.
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Auth Debug: {authDebug.isLoggedIn ? "Logged In" : "Not Logged In"} | Token:{" "}
+                      {authDebug.hasToken ? "Present" : "Missing"}
+                    </p>
+                  </div>
+                )}
+
                 {error && (
                   <div className="bg-red-50 border-l-4 border-red-500 p-4">
                     <p className="text-red-700">{error}</p>
@@ -688,12 +755,18 @@ const ApplyJob = () => {
 
                 {/* Account Creation Option (for non-logged in users) */}
                 {!user && (
-                  <div className="border-t pt-4 mt-6">
+                  <div className="border-t border-b py-4 my-6 bg-yellow-50">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Account Information</h3>
+                    <p className="text-gray-700 mb-4">
+                      You need to create an account or log in to submit your application.
+                    </p>
+
                     <div className="flex items-center mb-4">
                       <input
                         id="createAccount"
                         type="checkbox"
                         className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                        defaultChecked={true}
                       />
                       <label htmlFor="createAccount" className="ml-2 block text-sm text-gray-700">
                         Create an account to track your application status
@@ -703,15 +776,25 @@ const ApplyJob = () => {
                     <div id="accountFields" className="space-y-4">
                       <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                          Password
+                          Password <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="password"
                           id="password"
                           name="password"
-                          className="py-2 px-3 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          className={`py-2 px-3 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                            formErrors.password ? "border-red-500" : "border-gray-300"
+                          }`}
                           placeholder="Create a password"
+                          required
                         />
+                        {formErrors.password && <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>}
+                        <p className="mt-1 text-sm text-gray-500">
+                          Already have an account?{" "}
+                          <Link to="/login" className="text-teal-600 hover:underline">
+                            Login here
+                          </Link>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -778,4 +861,3 @@ const ApplyJob = () => {
 }
 
 export default ApplyJob
-
