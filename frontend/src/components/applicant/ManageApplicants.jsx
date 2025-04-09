@@ -245,20 +245,20 @@ const ManageApplicants = () => {
       results = results.filter((applicant) => applicant.status === filterStatus)
     }
 
-    // Filter by vacancy
-    if (selectedVacancy) {
-      results = results.filter((applicant) => applicant.vacancy._id === selectedVacancy)
-    }
-
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       results = results.filter(
         (applicant) =>
-          applicant.fullName.toLowerCase().includes(term) ||
-          applicant.email.toLowerCase().includes(term) ||
-          applicant.vacancy.position.toLowerCase().includes(term),
+          (applicant.fullName?.toLowerCase().includes(term) || false) ||
+          (applicant.email?.toLowerCase().includes(term) || false) ||
+          (applicant.vacancy?.position?.toLowerCase().includes(term) || false)
       )
+    }
+
+    // Filter by vacancy
+    if (selectedVacancy) {
+      results = results.filter((applicant) => applicant.vacancy?._id === selectedVacancy)
     }
 
     setFilteredApplicants(results)
@@ -404,35 +404,35 @@ const ManageApplicants = () => {
     },
     {
       name: "Position",
-      selector: (row) => row.vacancy.position,
+      selector: (row) => row.vacancy?.position || "N/A",
       sortable: true,
     },
     {
       name: "Department",
-      selector: (row) => row.vacancy.department.dep_name,
+      selector: (row) => row.vacancy?.department?.dep_name || "N/A",
       sortable: true,
     },
     {
       name: "Education",
-      selector: (row) => row.education.degree,
+      selector: (row) => row.education?.degree || "N/A",
       sortable: true,
       cell: (row) => (
         <div>
-          <div>{row.education.degree}</div>
-          <div className="text-xs text-gray-500">{row.education.institution}</div>
+          <div>{row.education?.degree || "N/A"}</div>
+          <div className="text-xs text-gray-500">{row.education?.institution || "N/A"}</div>
         </div>
       ),
     },
     {
       name: "Applied On",
-      selector: (row) => new Date(row.createdAt).toLocaleDateString(),
+      selector: (row) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A",
       sortable: true,
     },
     {
       name: "Status",
-      selector: (row) => row.status,
+      selector: (row) => row.status || "pending",
       sortable: true,
-      cell: (row) => getStatusBadge(row.status),
+      cell: (row) => getStatusBadge(row.status || "pending"),
     },
     {
       name: "Actions",
@@ -550,7 +550,7 @@ const ManageApplicants = () => {
               <option value="">All Positions</option>
               {vacancies.map((vacancy) => (
                 <option key={vacancy._id} value={vacancy._id}>
-                  {vacancy.position} - {vacancy.department.dep_name}
+                  {vacancy.position} - {vacancy.department?.dep_name || "Unknown Department"}
                 </option>
               ))}
             </select>
@@ -590,7 +590,7 @@ const ManageApplicants = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h3 className="text-xl font-bold mb-4">Delete Application</h3>
             <p className="mb-4">
-              Are you sure you want to delete the application from <strong>{applicantToDelete.fullName}</strong> for the position of <strong>{applicantToDelete.vacancy.position}</strong>?
+              Are you sure you want to delete the application from <strong>{applicantToDelete.fullName}</strong> for the position of <strong>{applicantToDelete.vacancy?.position || "Unknown Position"}</strong>?
             </p>
             <p className="mb-4 text-red-600">This action cannot be undone.</p>
             <div className="flex justify-end space-x-3">
