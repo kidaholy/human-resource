@@ -236,7 +236,7 @@ const PublicVacancies = () => {
 
                     <div className="flex flex-col items-center md:items-end space-y-2">
                       <Link
-                        to={`/apply/${vacancy._id}`}
+                        to={`/register?vacancy=${vacancy._id}`}
                         className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-md transition-colors w-full md:w-auto text-center"
                       >
                         Apply Now
@@ -273,4 +273,3 @@ const PublicVacancies = () => {
 }
 
 export default PublicVacancies
-

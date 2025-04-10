@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import axios from "axios"
 import { FaArrowLeft, FaEnvelope, FaLock, FaUser, FaPhone } from "react-icons/fa"
 
@@ -17,6 +17,10 @@ const ApplicantRegistration = () => {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState("")
   const navigate = useNavigate()
+
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const vacancyId = searchParams.get("vacancy")
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -88,9 +92,15 @@ const ApplicantRegistration = () => {
       })
 
       if (response.data.success) {
-        // Store token and redirect to applicant dashboard
+        // Store token
         localStorage.setItem("token", response.data.token)
-        navigate("/applicant-dashboard")
+
+        // Redirect to the vacancy application page if coming from a vacancy listing
+        if (vacancyId) {
+          navigate(`/apply/${vacancyId}`)
+        } else {
+          navigate("/applicant-dashboard")
+        }
       }
     } catch (error) {
       console.error("Registration error:", error)
@@ -304,7 +314,10 @@ const ApplicantRegistration = () => {
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+                <Link
+                  to={vacancyId ? `/login?vacancy=${vacancyId}` : "/login"}
+                  className="text-teal-600 hover:text-teal-700 font-medium"
+                >
                   Sign in
                 </Link>
               </p>
@@ -333,4 +346,3 @@ const ApplicantRegistration = () => {
 }
 
 export default ApplicantRegistration
-

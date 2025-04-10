@@ -3,7 +3,7 @@
 import { useState } from "react"
 import axios from "axios"
 import { useAuth } from "../context/authContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link, useLocation } from "react-router-dom"
 import { FaEnvelope, FaLock, FaSignInAlt, FaUsers, FaCalendarAlt, FaMoneyBillWave } from "react-icons/fa"
 
 const Login = () => {
@@ -13,6 +13,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const vacancyId = searchParams.get("vacancy")
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,9 +29,14 @@ const Login = () => {
         login(response.data.user)
         localStorage.setItem("token", response.data.token)
 
-        // Redirect based on role
+        // Redirect based on role and context
         if (response.data.user.role === "applicant") {
-          navigate("/applicant-dashboard")
+          // If coming from a vacancy listing, redirect to the application page
+          if (vacancyId) {
+            navigate(`/apply/${vacancyId}`)
+          } else {
+            navigate("/applicant-dashboard")
+          }
         } else if (response.data.user.role === "admin") {
           navigate("/admin-dashboard")
         } else if (response.data.user.role === "department_head") {
@@ -196,6 +205,15 @@ const Login = () => {
               )}
             </button>
           </form>
+          <p className="mt-4 text-center text-sm text-gray-600">
+            Don't have an account?{" "}
+            <Link
+              to={vacancyId ? `/register?vacancy=${vacancyId}` : "/register"}
+              className="text-primary-600 hover:text-primary-500"
+            >
+              Register now
+            </Link>
+          </p>
 
           <p className="mt-6 text-center text-sm text-gray-600">
             © 2023 Wolkite University Human Resource Management System
@@ -207,4 +225,3 @@ const Login = () => {
 }
 
 export default Login
-
