@@ -349,20 +349,20 @@ const ManageApplicants = () => {
           >
             <FaEye />
           </Link>
-          <button
+              <button
             onClick={() => handleStatusChange(row._id, "shortlisted")}
-            className="text-blue-600 hover:text-blue-800"
-            title="Shortlist"
-          >
-            <FaCheck />
-          </button>
-          <button
+                className="text-blue-600 hover:text-blue-800"
+                title="Shortlist"
+              >
+                <FaCheck />
+              </button>
+              <button
             onClick={() => handleStatusChange(row._id, "rejected")}
-            className="text-red-600 hover:text-red-800"
-            title="Reject"
-          >
-            <FaTimes />
-          </button>
+                className="text-red-600 hover:text-red-800"
+                title="Reject"
+              >
+                <FaTimes />
+              </button>
           <button
             onClick={() => openFeedbackModal(row, "feedback")}
             className="text-teal-600 hover:text-teal-800"
@@ -370,13 +370,13 @@ const ManageApplicants = () => {
           >
             <FaEdit />
           </button>
-          <button
+            <button
             onClick={() => openDeleteConfirmation(row)}
             className="text-red-600 hover:text-red-800"
             title="Delete"
           >
             <FaTrash />
-          </button>
+            </button>
         </div>
       ),
     },

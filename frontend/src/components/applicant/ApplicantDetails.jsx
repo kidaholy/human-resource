@@ -15,7 +15,8 @@ import {
   FaCheck,
   FaTimes,
   FaEdit,
-  FaTrash
+  FaTrash,
+  FaDownload
 } from "react-icons/fa"
 
 const ApplicantDetails = () => {
@@ -207,7 +208,7 @@ const ApplicantDetails = () => {
                   <FaUser className="text-gray-400 mr-3" />
                   <span className="text-gray-600">Name:</span>
                   <span className="ml-2 font-medium">{applicant.fullName}</span>
-                </div>
+                  </div>
                 <div className="flex items-center">
                   <FaEnvelope className="text-gray-400 mr-3" />
                   <span className="text-gray-600">Email:</span>
@@ -225,8 +226,8 @@ const ApplicantDetails = () => {
                     {new Date(applicant.applicationDate).toLocaleDateString()}
                   </span>
                 </div>
-              </div>
-            </div>
+                  </div>
+                  </div>
 
             {/* Education */}
             <div className="bg-gray-50 p-6 rounded-lg">
@@ -249,7 +250,7 @@ const ApplicantDetails = () => {
             <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
               <h3 className="text-lg font-semibold mb-4">Experience</h3>
               {applicant.experience ? (
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {Array.isArray(applicant.experience) ? (
                     applicant.experience.map((exp, index) => (
                       <div key={index} className="border-l-4 border-teal-500 pl-4">
@@ -260,7 +261,7 @@ const ApplicantDetails = () => {
                           {exp.endDate ? new Date(exp.endDate).toLocaleDateString() : "Present"}
                         </div>
                         <div className="mt-2 text-gray-700">{exp.description}</div>
-                      </div>
+                  </div>
                     ))
                   ) : typeof applicant.experience === 'string' ? (
                     <div className="text-gray-700">{applicant.experience}</div>
@@ -269,37 +270,58 @@ const ApplicantDetails = () => {
                       {applicant.experience.title && <div className="font-medium">{applicant.experience.title}</div>}
                       {applicant.experience.company && <div className="text-gray-600">{applicant.experience.company}</div>}
                       {applicant.experience.description && <div className="mt-2">{applicant.experience.description}</div>}
-                    </div>
+                  </div>
                   )}
                 </div>
               ) : (
                 <p className="text-gray-500">No experience information provided</p>
               )}
-            </div>
+                </div>
 
             {/* Resume */}
             <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
               <h3 className="text-lg font-semibold mb-4">Resume</h3>
               {applicant.resume ? (
-                <a
-                  href={`http://localhost:5000${applicant.resume}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-teal-600 hover:text-teal-700"
-                >
-                  <FaFileAlt className="mr-2" />
-                  View Resume
-                </a>
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center space-x-4">
+                    <a
+                      href={`http://localhost:5000/uploads/resumes/${applicant.resume.split('/').pop()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-4 py-2 bg-teal-50 text-teal-700 border-2 border-teal-500 rounded-md hover:bg-teal-100 transition-colors duration-200"
+                    >
+                      <FaFileAlt className="mr-2" />
+                      View Resume
+                    </a>
+                    <a
+                      href={`http://localhost:5000/uploads/resumes/${applicant.resume.split('/').pop()}`}
+                      download={applicant.resume.split('/').pop()}
+                      className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 border-2 border-blue-500 rounded-md hover:bg-blue-100 transition-colors duration-200"
+                    >
+                      <FaDownload className="mr-2" />
+                      Download Resume
+                    </a>
+                  </div>
+                  {applicant.resume.endsWith('.pdf') && (
+                    <div className="mt-4">
+                      <iframe
+                        src={`http://localhost:5000/uploads/resumes/${applicant.resume.split('/').pop()}`}
+                        className="w-full h-[600px] border rounded-lg"
+                        title="Resume Preview"
+                      />
+                  </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-gray-500">No resume uploaded</p>
               )}
-            </div>
+                  </div>
 
             {/* Status and Feedback */}
             <div className="bg-gray-50 p-6 rounded-lg md:col-span-2">
               <h3 className="text-lg font-semibold mb-4">Status and Feedback</h3>
               <div className="space-y-4">
-                <div>
+                  <div>
                   <span className="text-gray-600">Status:</span>
                   <span
                     className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
@@ -326,8 +348,8 @@ const ApplicantDetails = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+            </div>
+          </div>
 
       {/* Feedback Modal */}
       {showFeedbackModal && (
