@@ -68,7 +68,7 @@ const EmployeeProfile = () => {
         <div className="absolute -top-16 left-6">
           {profile.userId?.profileImage ? (
             <img
-              src={`http://localhost:5000/${profile.userId.profileImage}`}
+              src={`http://localhost:5000/uploads/${profile.userId.profileImage}`}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover border-4 border-white"
               onError={(e) => {
@@ -245,4 +245,3 @@ const EmployeeProfile = () => {
 }
 
 export default EmployeeProfile
-

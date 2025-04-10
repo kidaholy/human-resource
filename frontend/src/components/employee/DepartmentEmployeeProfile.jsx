@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import axios from "axios"
@@ -65,7 +67,7 @@ const DepartmentEmployeeProfile = () => {
               <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-white">
                 {employee.userId?.profileImage ? (
                   <img
-                    src={`http://localhost:5000/${employee.userId.profileImage}`}
+                    src={`http://localhost:5000/uploads/${employee.userId.profileImage}`}
                     alt={employee.userId.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -110,9 +112,7 @@ const DepartmentEmployeeProfile = () => {
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaCalendar className="text-gray-400" />
-                  <span className="text-gray-600">
-                    Joined: {new Date(employee.joiningDate).toLocaleDateString()}
-                  </span>
+                  <span className="text-gray-600">Joined: {new Date(employee.joiningDate).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FaPhone className="text-gray-400" />
@@ -142,4 +142,4 @@ const DepartmentEmployeeProfile = () => {
   )
 }
 
-export default DepartmentEmployeeProfile 
+export default DepartmentEmployeeProfile

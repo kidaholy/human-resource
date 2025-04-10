@@ -96,7 +96,7 @@ const List = () => {
               <div className="absolute -top-10 left-4">
                 {emp.profileImage ? (
                   <img
-                    src={`http://localhost:5000/${emp.profileImage}`}
+                    src={`http://localhost:5000/uploads/${emp.profileImage}`}
                     alt={`${emp.name}'s profile`}
                     className="w-20 h-20 rounded-full object-cover border-4 border-white"
                     onError={(e) => {
@@ -143,7 +143,7 @@ const List = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                     />
                   </svg>
                   <span>{emp.dep_name}</span>
@@ -185,4 +185,3 @@ const List = () => {
 }
 
 export default List
-

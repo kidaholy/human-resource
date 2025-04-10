@@ -43,7 +43,7 @@ const View = () => {
         <div className="absolute -top-16 left-6">
           {employee.userId?.profileImage ? (
             <img
-              src={`http://localhost:5000/${employee.userId.profileImage}`}
+              src={`http://localhost:5000/uploads/${employee.userId.profileImage}`}
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover border-4 border-white"
               onError={(e) => {
@@ -210,4 +210,3 @@ const View = () => {
 }
 
 export default View
-
