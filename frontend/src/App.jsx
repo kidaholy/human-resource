@@ -40,6 +40,7 @@ import ManageVacancyRequests from "./components/vacancy/ManageVacancyRequests.js
 import DepartmentVacancyRequests from "./components/vacancy/DepartmentVacancyRequests.jsx"
 import VacancyDetails from "./components/vacancy/VacancyDetails.jsx"
 import EditVacancy from "./components/vacancy/EditVacancy.jsx"
+import EmployeeSalaryHistory from "./components/salary/EmployeeSalaryHistory.jsx"
 
 function App() {
   return (
@@ -137,6 +138,7 @@ function App() {
             <Route path="/employee-dashboard/profile" element={<EmployeeProfile />}></Route>
             <Route path="/employee-dashboard/request-leave" element={<RequestLeave />}></Route>
             <Route path="/employee-dashboard/leave-history" element={<LeaveHistory />}></Route>
+            <Route path="/employee-dashboard/salary" element={<EmployeeSalaryHistory />}></Route>
           </Route>
         </Routes>
       </AuthProvider>
@@ -145,4 +147,3 @@ function App() {
 }
 
 export default App
-

@@ -62,7 +62,7 @@ const EmployeeSideBar = () => {
           end
         >
           <FaMoneyBillWave className="text-lg" />
-          <span>Salary</span>
+          <span>Salary History</span>
         </NavLink>
       </div>
       <div className="p-4 text-xs text-gray-400 border-t border-gray-800">
@@ -74,4 +74,3 @@ const EmployeeSideBar = () => {
 }
 
 export default EmployeeSideBar
-
