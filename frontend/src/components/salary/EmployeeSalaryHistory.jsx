@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useAuth } from "../../context/authContext"
 import axios from "axios"
-import { FaMoneyBillWave, FaPlus } from "react-icons/fa"
+import { FaMoneyBillWave } from "react-icons/fa"
 
 const EmployeeSalaryHistory = () => {
   const [salaries, setSalaries] = useState([])
@@ -11,7 +11,6 @@ const EmployeeSalaryHistory = () => {
   const [error, setError] = useState(null)
   const [debugInfo, setDebugInfo] = useState(null)
   const [showDebug, setShowDebug] = useState(false)
-  const [creatingMock, setCreatingMock] = useState(false)
   const { user, loading: authLoading } = useAuth()
 
   const fetchSalaryHistory = async () => {
@@ -87,34 +86,6 @@ const EmployeeSalaryHistory = () => {
     fetchSalaryHistory()
   }, [user, authLoading])
 
-  const createMockSalary = async () => {
-    try {
-      setCreatingMock(true)
-
-      const token = localStorage.getItem("token")
-      const response = await axios.post(
-        `http://localhost:5000/api/salary/mock/${user._id}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      console.log("Mock salary created:", response.data)
-
-      // Refresh the salary history
-      await fetchSalaryHistory()
-
-      setCreatingMock(false)
-    } catch (err) {
-      console.error("Error creating mock salary:", err)
-      setError(`Failed to create mock salary: ${err.response?.data?.message || err.message}`)
-      setCreatingMock(false)
-    }
-  }
-
   // If still loading auth, show loading spinner
   if (authLoading) {
     return (
@@ -167,26 +138,6 @@ const EmployeeSalaryHistory = () => {
           <FaMoneyBillWave className="text-teal-600 text-2xl mr-2" />
           <h1 className="text-2xl font-semibold text-gray-800">My Salary History</h1>
         </div>
-
-        {user && user.role === "employee" && (
-          <button
-            onClick={createMockSalary}
-            disabled={creatingMock}
-            className="flex items-center bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md transition duration-300 disabled:opacity-50"
-          >
-            {creatingMock ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                Creating...
-              </>
-            ) : (
-              <>
-                <FaPlus className="mr-2" />
-                Create Test Salary
-              </>
-            )}
-          </button>
-        )}
       </div>
 
       {salaries.length === 0 ? (
@@ -214,9 +165,6 @@ const EmployeeSalaryHistory = () => {
                 <li>Your employee record might not be properly linked to your user account</li>
                 <li>There might be a system issue</li>
               </ul>
-              <p className="text-sm text-yellow-700 mt-2">
-                You can click the "Create Test Salary" button above to create a test record for demonstration purposes.
-              </p>
             </div>
           </div>
         </div>

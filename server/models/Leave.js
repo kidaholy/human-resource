@@ -55,6 +55,26 @@ const leaveSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  medicalCertificate: {
+    type: Boolean,
+    default: false,
+  },
+  willProvideDocumentationLater: {
+    type: Boolean,
+    default: false,
+  },
+  medicalDocumentation: {
+    type: String,
+    default: null,
+  },
+  documentationProvided: {
+    type: Boolean,
+    default: false,
+  },
+  documentationVerified: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 // Virtual property to calculate total days
@@ -84,4 +104,3 @@ leaveSchema.set("toObject", { virtuals: true })
 
 const Leave = mongoose.model("Leave", leaveSchema)
 export default Leave
-

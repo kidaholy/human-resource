@@ -11,6 +11,8 @@ const RequestLeave = () => {
     endDate: "",
     reason: "",
     leaveType: "",
+    medicalCertificate: false,
+    willProvideDocumentationLater: false,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -91,9 +93,31 @@ const RequestLeave = () => {
     }
   }, [leaveData.startDate, leaveData.endDate])
 
+  useEffect(() => {
+    if (leaveData.leaveType === "sick" && leaveData.startDate) {
+      setLeaveData((prev) => ({
+        ...prev,
+        endDate: prev.startDate,
+      }))
+    }
+  }, [leaveData.leaveType, leaveData.startDate])
+
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setLeaveData({ ...leaveData, [name]: value })
+    const { name, value, type, checked } = e.target
+
+    if (name === "leaveType" && value === "sick") {
+      // For sick leave, set end date equal to start date
+      setLeaveData({
+        ...leaveData,
+        [name]: value,
+        endDate: leaveData.startDate || "",
+      })
+    } else {
+      setLeaveData({
+        ...leaveData,
+        [name]: type === "checkbox" ? checked : value,
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -121,12 +145,6 @@ const RequestLeave = () => {
     // Validate leave balance
     if (leaveData.leaveType === "annual" && totalDays > leaveBalance.annual) {
       setError(`You don't have enough annual leave balance. Available: ${leaveBalance.annual} days`)
-      setLoading(false)
-      return
-    }
-
-    if (leaveData.leaveType === "sick" && totalDays > leaveBalance.sick) {
-      setError(`You don't have enough sick leave balance. Available: ${leaveBalance.sick} days`)
       setLoading(false)
       return
     }
@@ -197,20 +215,30 @@ const RequestLeave = () => {
             />
           </div>
 
-          <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-              End Date
-            </label>
-            <input
-              type="date"
-              id="endDate"
-              name="endDate"
-              value={leaveData.endDate}
-              onChange={handleChange}
-              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
-              required
-            />
-          </div>
+          {leaveData.leaveType !== "sick" && (
+            <div>
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={leaveData.endDate}
+                onChange={handleChange}
+                className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                required
+              />
+            </div>
+          )}
+
+          {leaveData.leaveType === "sick" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Duration</label>
+              <div className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-50">Single day</div>
+              <p className="text-xs text-gray-500 mt-1">Sick leave is granted one day at a time</p>
+            </div>
+          )}
 
           <div>
             <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700">
@@ -247,6 +275,45 @@ const RequestLeave = () => {
             />
           </div>
 
+          {leaveData.leaveType === "sick" && (
+            <div className="md:col-span-2">
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="medicalCertificate"
+                    name="medicalCertificate"
+                    checked={leaveData.medicalCertificate}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="medicalCertificate" className="ml-2 block text-sm text-gray-700">
+                    I have a medical certificate for this sick leave
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="willProvideDocumentationLater"
+                    name="willProvideDocumentationLater"
+                    checked={leaveData.willProvideDocumentationLater}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="willProvideDocumentationLater" className="ml-2 block text-sm text-gray-700">
+                    I will provide medical documentation after treatment
+                  </label>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  Note: For sick leave, you can provide medical documentation after your treatment is complete. You'll
+                  be able to upload images of your medical documents in your leave history.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="md:col-span-2">
             <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
               Reason
@@ -276,4 +343,3 @@ const RequestLeave = () => {
 }
 
 export default RequestLeave
-

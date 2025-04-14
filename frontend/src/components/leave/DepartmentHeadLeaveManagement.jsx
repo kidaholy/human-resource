@@ -116,6 +116,26 @@ const DepartmentHeadLeaveManagement = () => {
       ),
     },
     {
+      name: "Medical Certificate",
+      selector: (row) => (row.leaveType === "sick" ? (row.medicalCertificate ? "Yes" : "No") : "N/A"),
+      sortable: true,
+      cell: (row) => {
+        if (row.leaveType !== "sick") return <span className="text-gray-400">N/A</span>
+
+        if (row.medicalCertificate) {
+          return (
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Provided</span>
+          )
+        } else if (row.requiresMedicalCertificate) {
+          return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Required</span>
+        } else {
+          return (
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Not Required</span>
+          )
+        }
+      },
+    },
+    {
       name: "Actions",
       cell: (row) => (
         <div className="flex space-x-2">
@@ -206,4 +226,3 @@ const DepartmentHeadLeaveManagement = () => {
 }
 
 export default DepartmentHeadLeaveManagement
-

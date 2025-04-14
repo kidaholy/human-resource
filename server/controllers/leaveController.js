@@ -5,7 +5,7 @@ import Department from "../models/Department.js"
 // Request leave
 const requestLeave = async (req, res) => {
   try {
-    const { startDate, endDate, leaveType, reason } = req.body
+    const { startDate, endDate, leaveType, reason, medicalCertificate, willProvideDocumentationLater } = req.body
     const userId = req.user._id
 
     // Find the employee record for the current user
@@ -15,16 +15,21 @@ const requestLeave = async (req, res) => {
       return res.status(404).json({ success: false, error: "Employee not found" })
     }
 
-    // Create new leave request
+    // For sick leave, ensure end date equals start date (single day)
+    const finalEndDate = leaveType === "sick" ? startDate : endDate
+
+    // Create new leave request with all fields
     const newLeave = new Leave({
       employeeId: employee._id,
       startDate,
-      endDate,
+      endDate: finalEndDate,
       leaveType,
       reason,
       departmentHeadStatus: "pending",
       adminStatus: "pending",
       status: "pending",
+      medicalCertificate: medicalCertificate || false,
+      willProvideDocumentationLater: willProvideDocumentationLater || false,
     })
 
     await newLeave.save()
@@ -32,6 +37,82 @@ const requestLeave = async (req, res) => {
   } catch (error) {
     console.error("Error requesting leave:", error)
     return res.status(500).json({ success: false, error: "Server error in requesting leave" })
+  }
+}
+
+// Upload medical documentation
+const uploadMedicalDocumentation = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { documentationUrl } = req.body
+    const userId = req.user._id
+
+    // Find the employee record for the current user
+    const employee = await Employee.findOne({ userId })
+
+    if (!employee) {
+      return res.status(404).json({ success: false, error: "Employee not found" })
+    }
+
+    // Find the leave request
+    const leave = await Leave.findById(id)
+
+    if (!leave) {
+      return res.status(404).json({ success: false, error: "Leave request not found" })
+    }
+
+    // Verify the leave request belongs to this employee
+    if (leave.employeeId.toString() !== employee._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, error: "You can only upload documentation for your own leave requests" })
+    }
+
+    // Update the leave request with documentation
+    leave.medicalDocumentation = documentationUrl
+    leave.documentationProvided = true
+    leave.updatedAt = Date.now()
+
+    await leave.save()
+
+    return res.status(200).json({
+      success: true,
+      message: "Medical documentation uploaded successfully",
+      leave,
+    })
+  } catch (error) {
+    console.error("Error uploading medical documentation:", error)
+    return res.status(500).json({ success: false, error: "Server error in uploading medical documentation" })
+  }
+}
+
+// Verify medical documentation (for admin)
+const verifyMedicalDocumentation = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { verified } = req.body
+
+    // Find the leave request
+    const leave = await Leave.findById(id)
+
+    if (!leave) {
+      return res.status(404).json({ success: false, error: "Leave request not found" })
+    }
+
+    // Update the verification status
+    leave.documentationVerified = verified
+    leave.updatedAt = Date.now()
+
+    await leave.save()
+
+    return res.status(200).json({
+      success: true,
+      message: `Medical documentation ${verified ? "verified" : "marked as unverified"}`,
+      leave,
+    })
+  } catch (error) {
+    console.error("Error verifying medical documentation:", error)
+    return res.status(500).json({ success: false, error: "Server error in verifying medical documentation" })
   }
 }
 
@@ -68,21 +149,21 @@ const getLeaveHistory = async (req, res) => {
       .sort({ createdAt: -1 })
 
     // Calculate total days for each leave request
-    const leaveHistoryWithDays = leaveHistory.map(leave => {
+    const leaveHistoryWithDays = leaveHistory.map((leave) => {
       const startDate = new Date(leave.startDate)
       const endDate = new Date(leave.endDate)
       const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
       return {
         ...leave.toObject(),
         totalDays,
-        isDepartmentHead: !!isDepartmentHead
+        isDepartmentHead: !!isDepartmentHead,
       }
     })
 
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       leaveHistory: leaveHistoryWithDays,
-      isDepartmentHead: !!isDepartmentHead 
+      isDepartmentHead: !!isDepartmentHead,
     })
   } catch (error) {
     console.error("Error fetching leave history:", error)
@@ -454,42 +535,44 @@ const getDepartmentEmployeesLeaveHistory = async (req, res) => {
 
     // Get leave history for all employees in the department
     const leaveHistory = await Leave.find({
-      employeeId: { $in: employeeIds }
+      employeeId: { $in: employeeIds },
     })
-    .populate({
-      path: "employeeId",
-      populate: [
-        {
-          path: "userId",
-          select: "name email profileImage",
-        },
-        {
-          path: "department",
-          select: "dep_name",
-        },
-      ],
-    })
-    .sort({ createdAt: -1 })
+      .populate({
+        path: "employeeId",
+        populate: [
+          {
+            path: "userId",
+            select: "name email profileImage",
+          },
+          {
+            path: "department",
+            select: "dep_name",
+          },
+        ],
+      })
+      .sort({ createdAt: -1 })
 
     // Calculate total days for each leave request
-    const leaveHistoryWithDays = leaveHistory.map(leave => {
+    const leaveHistoryWithDays = leaveHistory.map((leave) => {
       const startDate = new Date(leave.startDate)
       const endDate = new Date(leave.endDate)
       const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1
       return {
         ...leave.toObject(),
-        totalDays
+        totalDays,
       }
     })
 
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       leaveHistory: leaveHistoryWithDays,
-      departmentName: department.dep_name
+      departmentName: department.dep_name,
     })
   } catch (error) {
     console.error("Error fetching department employees leave history:", error)
-    return res.status(500).json({ success: false, error: "Server error in fetching department employees leave history" })
+    return res
+      .status(500)
+      .json({ success: false, error: "Server error in fetching department employees leave history" })
   }
 }
 
@@ -503,6 +586,7 @@ export {
   updateAdminLeaveStatus,
   getAllLeaveRequests,
   getLeaveStats,
-  getDepartmentEmployeesLeaveHistory
+  getDepartmentEmployeesLeaveHistory,
+  uploadMedicalDocumentation,
+  verifyMedicalDocumentation,
 }
-
