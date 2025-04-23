@@ -4,13 +4,23 @@ import { useState } from "react"
 import axios from "axios"
 import { useAuth } from "../context/authContext"
 import { useNavigate, Link, useLocation } from "react-router-dom"
-import { FaEnvelope, FaLock, FaSignInAlt, FaUsers, FaCalendarAlt, FaMoneyBillWave } from "react-icons/fa"
+import {
+  FaEnvelope,
+  FaLock,
+  FaSignInAlt,
+  FaUsers,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa"
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -56,14 +66,18 @@ const Login = () => {
     }
   }
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center p-4"
       style={{ backgroundImage: "url('/wolkite-uni.png')" }}
     >
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+      <div className="absolute inset-0 bg-black opacity-60"></div>
 
-      <div className="relative z-10 w-full max-w-4xl flex flex-col lg:flex-row items-center rounded-xl overflow-hidden shadow-2xl">
+      <div className="relative z-10 w-full max-w-4xl flex flex-col lg:flex-row items-stretch rounded-2xl overflow-hidden shadow-2xl">
         {/* Left side - Info */}
         <div className="w-full lg:w-1/2 bg-gradient-to-br from-primary-700 to-primary-900 p-8 lg:p-12 text-white">
           <div className="flex items-center mb-8">
@@ -78,41 +92,52 @@ const Login = () => {
           </p>
 
           <div className="hidden lg:block">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center mr-4">
-                <FaUsers className="text-white" />
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center mr-4 shadow-lg">
+                <FaUsers className="text-white text-lg" />
               </div>
-              <p>Employee Management</p>
+              <div>
+                <h3 className="font-semibold text-white">Employee Management</h3>
+                <p className="text-sm text-primary-100">Centralized employee data and profiles</p>
+              </div>
             </div>
 
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center mr-4">
-                <FaCalendarAlt className="text-white" />
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center mr-4 shadow-lg">
+                <FaCalendarAlt className="text-white text-lg" />
               </div>
-              <p>Leave Management</p>
+              <div>
+                <h3 className="font-semibold text-white">Leave Management</h3>
+                <p className="text-sm text-primary-100">Streamlined leave request and approval</p>
+              </div>
             </div>
 
             <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center mr-4">
-                <FaMoneyBillWave className="text-white" />
+              <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center mr-4 shadow-lg">
+                <FaMoneyBillWave className="text-white text-lg" />
               </div>
-              <p>Payroll Management</p>
+              <div>
+                <h3 className="font-semibold text-white">Payroll Management</h3>
+                <p className="text-sm text-primary-100">Automated salary processing and history</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right side - Login Form */}
-        <div className="w-full lg:w-1/2 bg-white p-8 lg:p-12">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">Login to your account</h2>
+        <div className="w-full lg:w-1/2 bg-white p-8 lg:p-12 flex flex-col justify-center">
+          <h2 className="text-2xl font-bold mb-2 text-gray-800">Welcome Back</h2>
+          <p className="text-gray-600 mb-6">Please sign in to your account</p>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-              <p>{error}</p>
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+              <p className="font-medium">Login Failed</p>
+              <p className="text-sm">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
@@ -133,7 +158,7 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="mb-6">
+            <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
@@ -143,18 +168,29 @@ const Login = () => {
                 </div>
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-10"
                   required
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="text-gray-400 hover:text-gray-600" />
+                  ) : (
+                    <FaEye className="text-gray-400 hover:text-gray-600" />
+                  )}
+                </button>
               </div>
             </div>
 
-            <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <label className="inline-flex items-center" htmlFor="remember">
                 <input
                   type="checkbox"
@@ -163,7 +199,7 @@ const Login = () => {
                 />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-primary-600 hover:text-primary-500">
+              <a href="#" className="text-sm text-primary-600 hover:text-primary-500 font-medium">
                 Forgot password?
               </a>
             </div>
@@ -171,7 +207,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
             >
               {loading ? (
                 <span className="flex items-center">
@@ -205,18 +241,18 @@ const Login = () => {
               )}
             </button>
           </form>
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
             <Link
               to={vacancyId ? `/register?vacancy=${vacancyId}` : "/register"}
-              className="text-primary-600 hover:text-primary-500"
+              className="text-primary-600 hover:text-primary-500 font-medium"
             >
               Register now
             </Link>
           </p>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
-            © 2023 Wolkite University Human Resource Management System
+          <p className="mt-8 text-center text-xs text-gray-500">
+            © {new Date().getFullYear()} Wolkite University Human Resource Management System
           </p>
         </div>
       </div>
