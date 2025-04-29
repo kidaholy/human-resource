@@ -170,7 +170,7 @@ const AdminSummary = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in text-gray-800">
       <div className="flex items-center mb-6">
         <FaChartLine className="text-primary-600 mr-2 text-xl" />
         <h3 className="text-xl md:text-2xl font-bold">Dashboard Overview</h3>
@@ -181,19 +181,19 @@ const AdminSummary = () => {
           icon={<FaUsers />}
           text="Total Employees"
           number={summaryData.totalEmployees}
-          color="bg-primary-600"
+          color="bg-primary-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
         />
         <SummaryCard
           icon={<FaBuilding />}
           text="Total Departments"
           number={summaryData.totalDepartments}
-          color="bg-secondary-600"
+          color="bg-secondary-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
         />
         <SummaryCard
           icon={<FaMoneyBillWave />}
           text="Monthly Net Salary"
           number={formatCurrency(summaryData.monthlyPayroll)}
-          color="bg-emerald-600"
+          color="bg-emerald-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
         />
       </div>
 
@@ -235,25 +235,25 @@ const AdminSummary = () => {
               icon={<FaFileAlt />}
               text="Leave Applied"
               number={summaryData.leaveApplied}
-              color="bg-blue-600"
+              color="bg-blue-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
             />
             <SummaryCard
               icon={<FaUserCheck />}
               text="Leave Approved"
               number={summaryData.leaveApproved}
-              color="bg-green-600"
+              color="bg-green-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
             />
             <SummaryCard
               icon={<FaHourglassHalf />}
               text="Leave Pending"
               number={summaryData.leavePending}
-              color="bg-amber-600"
+              color="bg-amber-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
             />
             <SummaryCard
               icon={<FaTimesCircle />}
               text="Leave Rejected"
               number={summaryData.leaveRejected}
-              color="bg-red-600"
+              color="bg-red-600 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg"
             />
           </div>
 

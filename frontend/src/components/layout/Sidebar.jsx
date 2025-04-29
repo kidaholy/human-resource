@@ -237,12 +237,12 @@ const Sidebar = () => {
         id="sidebar"
         className={`fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ease-in-out transform 
           ${isOpen ? "translate-x-0" : "-translate-x-full"} 
-          md:translate-x-0 bg-white border-r border-gray-200 w-72 md:w-72 flex flex-col`}
+          md:translate-x-0 bg-gradient-to-b from-teal-700 to-teal-900 bg-opacity-95 backdrop-blur-lg text-white w-72 md:w-72 flex flex-col shadow-2xl rounded-r-lg`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 bg-primary-600 text-white">
+        <div className="flex items-center justify-center h-16 bg-teal-800 text-white shadow-md rounded-tr-lg">
           <img src="/wolkite.png" alt="logo" width="40" className="mr-2" />
-          <h1 className="text-lg font-medium">Wolkite University</h1>
+          <h1 className="text-lg font-extrabold tracking-wide">Wolkite University</h1>
         </div>
 
         {/* User Info */}
@@ -274,8 +274,10 @@ const Sidebar = () => {
                   <div className="mb-1">
                     <button
                       onClick={() => toggleSection(link.section)}
-                      className={`w-full sidebar-link ${
-                        isSectionActive(link.section) ? "bg-primary-50 text-primary-700" : ""
+                      className={`w-full sidebar-link flex items-center space-x-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                        isSectionActive(link.section)
+                          ? "bg-teal-600 text-white shadow-lg"
+                          : "hover:bg-teal-700 hover:scale-105"
                       }`}
                       aria-expanded={expandedSection === link.section}
                       aria-controls={`submenu-${link.section}`}
@@ -321,7 +323,13 @@ const Sidebar = () => {
                   <NavLink
                     to={link.path}
                     end={link.path.split("/").length <= 2}
-                    className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                    className={({ isActive }) =>
+                      `sidebar-link flex items-center space-x-3 px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
+                        isActive
+                          ? "bg-teal-600 text-white shadow-lg"
+                          : "hover:bg-teal-700 hover:scale-105"
+                      }`
+                    }
                   >
                     <span className="text-lg">{link.icon}</span>
                     <span>{link.label}</span>

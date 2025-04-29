@@ -3,17 +3,17 @@ import { FaCalendarAlt, FaFileAlt, FaMoneyBillWave, FaTachometerAlt, FaUser } fr
 
 const EmployeeSideBar = () => {
   return (
-    <div className="bg-gray-900 text-white h-screen fixed left-0 top-0 bottom-0 w-64 flex flex-col transition-all duration-300 shadow-lg">
-      <div className="bg-teal-700 h-16 flex items-center justify-center">
+    <div className="bg-gradient-to-b from-gray-900 to-gray-800 bg-opacity-90 backdrop-blur-lg text-white h-screen fixed left-0 top-0 bottom-0 w-64 flex flex-col shadow-2xl rounded-r-lg">
+      <div className="bg-teal-700 h-16 flex items-center justify-center shadow-md rounded-tr-lg">
         <img src="/wolkite.png" alt="logo" width={"50"} className="mr-2" />
-        <h1 className="text-lg font-pacifico">Wolkite University</h1>
+        <h1 className="text-lg font-extrabold tracking-wide">Wolkite University</h1>
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <NavLink
           to="/employee-dashboard"
           className={({ isActive }) =>
-            `${isActive ? "bg-teal-700 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"} 
-            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 transition-colors duration-200`
+            `${isActive ? "bg-teal-600 text-white shadow-lg" : "text-gray-300 hover:bg-gray-700 hover:scale-105"} 
+            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 text-sm font-medium transition-all duration-300`
           }
           end
         >
@@ -23,8 +23,8 @@ const EmployeeSideBar = () => {
         <NavLink
           to="/employee-dashboard/profile"
           className={({ isActive }) =>
-            `${isActive ? "bg-teal-700 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"} 
-            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 transition-colors duration-200`
+            `${isActive ? "bg-teal-600 text-white shadow-lg" : "text-gray-300 hover:bg-gray-700 hover:scale-105"} 
+            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 text-sm font-medium transition-all duration-300`
           }
           end
         >
@@ -34,8 +34,8 @@ const EmployeeSideBar = () => {
         <NavLink
           to="/employee-dashboard/request-leave"
           className={({ isActive }) =>
-            `${isActive ? "bg-teal-700 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"} 
-            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 transition-colors duration-200`
+            `${isActive ? "bg-teal-600 text-white shadow-lg" : "text-gray-300 hover:bg-gray-700 hover:scale-105"} 
+            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 text-sm font-medium transition-all duration-300`
           }
           end
         >
@@ -45,8 +45,8 @@ const EmployeeSideBar = () => {
         <NavLink
           to="/employee-dashboard/leave-history"
           className={({ isActive }) =>
-            `${isActive ? "bg-teal-700 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"} 
-            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 transition-colors duration-200`
+            `${isActive ? "bg-teal-600 text-white shadow-lg" : "text-gray-300 hover:bg-gray-700 hover:scale-105"} 
+            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 text-sm font-medium transition-all duration-300`
           }
           end
         >
@@ -56,8 +56,8 @@ const EmployeeSideBar = () => {
         <NavLink
           to="/employee-dashboard/salary"
           className={({ isActive }) =>
-            `${isActive ? "bg-teal-700 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"} 
-            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 transition-colors duration-200`
+            `${isActive ? "bg-teal-600 text-white shadow-lg" : "text-gray-300 hover:bg-gray-700 hover:scale-105"} 
+            flex items-center space-x-4 py-3 px-6 rounded-md mx-2 mb-1 text-sm font-medium transition-all duration-300`
           }
           end
         >
@@ -65,7 +65,7 @@ const EmployeeSideBar = () => {
           <span>Salary History</span>
         </NavLink>
       </div>
-      <div className="p-4 text-xs text-gray-400 border-t border-gray-800">
+      <div className="p-4 text-xs text-gray-400 border-t border-gray-700">
         <p>© 2023 Wolkite University</p>
         <p>Human Resource Management System</p>
       </div>

@@ -157,7 +157,7 @@ const Header = () => {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-30 bg-gradient-to-r from-teal-700 to-teal-900 bg-opacity-95 backdrop-blur-lg text-white shadow-lg rounded-b-lg">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         {/* Left side - Search */}
         <div className="hidden md:flex md:w-1/3">
@@ -165,7 +165,7 @@ const Header = () => {
             <input
               type="text"
               placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent shadow-md"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -178,14 +178,14 @@ const Header = () => {
         {/* Mobile Logo */}
         <div className="flex items-center md:hidden">
           <img src="/wolkite.png" alt="logo" width="30" className="mr-2" />
-          <span className="font-medium text-gray-800">HRMS</span>
+          <span className="font-bold text-white tracking-wide">HRMS</span>
         </div>
 
         {/* Right side - User info and actions */}
         <div className="flex items-center space-x-1 md:space-x-4">
           {/* Theme Toggle */}
           <button
-            className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-white hover:text-yellow-400 hover:bg-teal-700 rounded-full transition-all duration-300 shadow-md"
             onClick={toggleDarkMode}
             aria-label="Toggle dark mode"
           >
@@ -195,7 +195,7 @@ const Header = () => {
           {/* Help */}
           <div className="relative" ref={helpRef}>
             <button
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 text-white hover:text-yellow-400 hover:bg-teal-700 rounded-full transition-all duration-300 shadow-md"
               onClick={() => setShowHelp(!showHelp)}
               aria-label="Help"
             >
@@ -235,12 +235,12 @@ const Header = () => {
           {/* Messages */}
           <div className="relative">
             <button
-              className="relative p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="relative p-2 text-white hover:text-yellow-400 hover:bg-teal-700 rounded-full transition-all duration-300 shadow-md"
               aria-label="Messages"
             >
               <FaEnvelope />
               {unreadMessages > 0 && (
-                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-md">
                   {unreadMessages}
                 </span>
               )}
@@ -250,13 +250,13 @@ const Header = () => {
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
-              className="relative p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="relative p-2 text-white hover:text-yellow-400 hover:bg-teal-700 rounded-full transition-all duration-300 shadow-md"
               onClick={() => setShowNotifications(!showNotifications)}
               aria-label="Notifications"
             >
               <FaBell />
               {unreadNotifications > 0 && (
-                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-white text-xs shadow-md">
                   {unreadNotifications}
                 </span>
               )}
@@ -303,14 +303,14 @@ const Header = () => {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors p-1 rounded-lg hover:bg-gray-50"
+              className="flex items-center space-x-2 text-white hover:text-yellow-400 transition-all duration-300 p-1 rounded-lg hover:bg-teal-700 shadow-md"
             >
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 border border-primary-200">
+              <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white border border-teal-300">
                 {user?.name?.charAt(0) || <FaUserCircle />}
               </div>
-              <span className="hidden md:inline font-medium">{user?.name}</span>
+              <span className="hidden md:inline font-semibold">{user?.name}</span>
               <svg
-                className="hidden md:inline w-4 h-4 text-gray-400"
+                className="hidden md:inline w-4 h-4 text-gray-200"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
