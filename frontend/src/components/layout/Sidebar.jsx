@@ -308,7 +308,7 @@ const Sidebar = () => {
                                 `block py-2 px-3 text-sm rounded-md transition-colors ${
                                   isActive
                                     ? "bg-primary-50 text-primary-700 font-medium"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    : "text-white hover:bg-gray-100 hover:text-gray-900"
                                 }`
                               }
                             >
