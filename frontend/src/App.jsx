@@ -41,6 +41,8 @@ import DepartmentVacancyRequests from "./components/vacancy/DepartmentVacancyReq
 import VacancyDetails from "./components/vacancy/VacancyDetails.jsx"
 import EditVacancy from "./components/vacancy/EditVacancy.jsx"
 import EmployeeSalaryHistory from "./components/salary/EmployeeSalaryHistory.jsx"
+import OrganizationChartPage from "./pages/OrganizationChartPage.jsx"
+import DepartmentHeadOrgChart from "./pages/DepartmentHeadOrgChart.jsx"
 
 function App() {
   return (
@@ -96,6 +98,9 @@ function App() {
             <Route path="/admin-dashboard/applicants/:id" element={<ApplicantDetails />}></Route>
             <Route path="/admin-dashboard/edit-applicant/:id" element={<EditApplicant />}></Route>
             <Route path="/admin-dashboard/vacancy-requests" element={<ManageVacancyRequests />}></Route>
+            <Route path="/admin-dashboard/organization-chart" element={<OrganizationChartPage />}></Route>
+            {/* Add the abbreviated route as well */}
+            <Route path="/admin-dashboard/org-chart" element={<OrganizationChartPage />}></Route>
           </Route>
 
           {/* Department Head Routes */}
@@ -121,6 +126,9 @@ function App() {
               path="/department-head-dashboard/my-vacancy-requests"
               element={<DepartmentVacancyRequests />}
             ></Route>
+            <Route path="/department-head-dashboard/organization-chart" element={<DepartmentHeadOrgChart />}></Route>
+            {/* Add the abbreviated route as well */}
+            <Route path="/department-head-dashboard/org-chart" element={<DepartmentHeadOrgChart />}></Route>
           </Route>
 
           {/* Employee Routes */}

@@ -143,6 +143,9 @@ const fetchEmployeesByDepId = async (req, res) => {
   const { id } = req.params
   try {
     const employees = await Employee.find({ department: id })
+      .populate("userId", "name email profileImage")
+      .populate("department", "dep_name")
+
     return res.status(200).json({ success: true, employees })
   } catch (error) {
     return res.status(500).json({ success: false, error: "server error in getting employeesByDepId" })
@@ -329,4 +332,3 @@ export {
   getEmployeeByUserId,
   getEmployeeBasicSalary,
 }
-
