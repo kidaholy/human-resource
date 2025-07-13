@@ -32,7 +32,7 @@ const PublicVacancies = () => {
   useEffect(() => {
     const fetchVacancies = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/vacancies/public")
+        const response = await axios.get("https://human-resource-5qve.onrender.com/api/vacancies/public")
         if (response.data.success) {
           setVacancies(response.data.vacancies)
           setFilteredVacancies(response.data.vacancies)

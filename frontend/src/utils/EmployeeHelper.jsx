@@ -55,7 +55,7 @@ export const columns = [
 export const fetchDepartments = async () => {
   let departments
   try {
-    const response = await axios.get(`http://localhost:5000/api/departments`, {
+    const response = await axios.get(`https://human-resource-5qve.onrender.com/api/departments`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -76,7 +76,7 @@ export const fetchDepartments = async () => {
 export const getEmployees = async (id) => {
   let employees
   try {
-    const response = await axios.get(`http://localhost:5000/api/employees/department/${id}`, {
+    const response = await axios.get(`https://human-resource-5qve.onrender.com/api/employees/department/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

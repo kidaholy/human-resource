@@ -84,7 +84,7 @@ const ApplicantRegistration = () => {
     setServerError("")
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/register-applicant", {
+      const response = await axios.post("https://human-resource-5qve.onrender.com/api/auth/register-applicant", {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,

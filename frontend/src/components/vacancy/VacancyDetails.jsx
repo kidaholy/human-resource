@@ -24,7 +24,7 @@ const VacancyDetails = () => {
 
         console.log("Fetching vacancy details for ID:", id)
         
-        const response = await axios.get(`http://localhost:5000/api/vacancies/${id}`, {
+        const response = await axios.get(`https://human-resource-5qve.onrender.com/api/vacancies/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -56,7 +56,7 @@ const VacancyDetails = () => {
     try {
       const token = localStorage.getItem("token")
       
-      await axios.delete(`http://localhost:5000/api/vacancies/${id}`, {
+      await axios.delete(`https://human-resource-5qve.onrender.com/api/vacancies/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

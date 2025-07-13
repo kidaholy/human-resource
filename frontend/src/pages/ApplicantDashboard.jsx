@@ -17,7 +17,7 @@ const ApplicantDashboard = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/applicants/my-applications", {
+        const response = await axios.get("https://human-resource-5qve.onrender.com/api/applicants/my-applications", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

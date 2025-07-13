@@ -30,7 +30,7 @@ const Welcome = () => {
       setError(null)
       try {
         // Try to fetch featured vacancies first
-        const response = await axios.get("http://localhost:5000/api/vacancies/public")
+        const response = await axios.get("https://human-resource-5qve.onrender.com/api/vacancies/public")
 
         if (response.data.success) {
           // Limit to 3 most recent vacancies for the featured section

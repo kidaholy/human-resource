@@ -56,7 +56,7 @@ const ApplyJob = () => {
     const fetchVacancy = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`http://localhost:5000/api/vacancies/public/${id}`)
+        const response = await axios.get(`https://human-resource-5qve.onrender.com/api/vacancies/public/${id}`)
 
         if (response.data.success) {
           setVacancy(response.data.vacancy)
@@ -222,7 +222,7 @@ const ApplyJob = () => {
         userInfo: user ? { id: user._id, name: user.name, role: user.role } : null,
       })
 
-      const response = await axios.post("http://localhost:5000/api/applicants/apply", submitData, {
+      const response = await axios.post("https://human-resource-5qve.onrender.com/api/applicants/apply", submitData, {
         headers: {
           "Content-Type": "multipart/form-data",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
