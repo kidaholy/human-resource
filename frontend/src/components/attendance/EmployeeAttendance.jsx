@@ -299,7 +299,7 @@ const EmployeeAttendance = () => {
 
         {/* Location input with dropdown */}
         <div className="mb-4 relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+          <label className="block text-sm font-medium text-gray-700 mb-1 items-center">
             <FaMapMarkerAlt className="mr-2 text-gray-500" /> Location
           </label>
           <div className="relative">
@@ -342,7 +342,7 @@ const EmployeeAttendance = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+          <label className="block text-sm font-medium text-gray-700 mb-1 items-center">
             <FaRegStickyNote className="mr-2 text-gray-500" /> Notes (Optional)
           </label>
           <textarea
